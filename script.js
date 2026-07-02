@@ -170,6 +170,7 @@ function addToCart() {
     cartUIUpdate();
 }
 
+// UI Cart View Refresh Setup
 function cartUIUpdate() {
     const cartItemsContainer = document.getElementById('cartItems');
     cartItemsContainer.innerHTML = '';
@@ -212,26 +213,61 @@ function checkoutOrder() {
     updateShopDropdown();
 }
 
-// 7. Backend Administration Logic (Stock adjustments list)
+// 7. Backend Administration Logic (Live search filter view + Price/Stock updates)
 function updateInventoryUI() {
     const invContainer = document.getElementById('inventoryList');
+    const searchFilter = document.getElementById('inventorySearch').value.toLowerCase();
     invContainer.innerHTML = '';
 
     for (const [dbKey, data] of Object.entries(inventory)) {
         const displayName = dbKey.replace(/-/g, ' '); 
         
+        // Dynamic search checking filter matches
+        if (!displayName.toLowerCase().includes(searchFilter)) {
+            continue;
+        }
+        
         const div = document.createElement('div');
         div.className = 'row-item';
         div.innerHTML = `
-            <span><strong>${displayName}</strong> (AED ${data.price})</span>
-            <div>
-                <span>Stock: <strong>${data.stock}</strong></span>
-                <input type="number" id="addStock-${dbKey}" class="stock-input" placeholder="Qty">
-                <button class="action-btn" style="width: auto; padding: 5px 10px; margin: 0;" onclick="addStock('${dbKey}')">Add</button>
+            <div style="flex: 1; padding-right: 10px;">
+                <strong>${displayName}</strong>
+                <div style="font-size: 14px; margin-top: 4px; color: #555;">
+                    Price: <strong>AED ${data.price}</strong> | Stock: <strong>${data.stock}</strong>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <input type="number" id="editPrice-${dbKey}" class="stock-input" placeholder="New Price" style="width: 90px;">
+                    <button class="action-btn" style="width: auto; padding: 6px 12px; margin: 0; background-color: #17a2b8;" onclick="updatePrice('${dbKey}')">Set Price</button>
+                </div>
+                <div>
+                    <input type="number" id="addStock-${dbKey}" class="stock-input" placeholder="Qty">
+                    <button class="action-btn" style="width: auto; padding: 6px 12px; margin: 0; background-color: #28a745;" onclick="addStock('${dbKey}')">Add Stock</button>
+                </div>
             </div>
         `;
         invContainer.appendChild(div);
     }
+}
+
+// Modify database price values directly
+function updatePrice(dbKey) {
+    const inputField = document.getElementById(`editPrice-${dbKey}`);
+    const newPrice = parseInt(inputField.value);
+
+    if (isNaN(newPrice) || newPrice < 0) {
+        alert("Provide a valid numeric price value.");
+        return;
+    }
+
+    inventory[dbKey].price = newPrice;
+    localStorage.setItem('shopInventory', JSON.stringify(inventory));
+    
+    inputField.value = ''; 
+    updateInventoryUI();
+    updateShopDropdown();
+    alert(`Price successfully updated.`);
 }
 
 // Update database quantity updates
@@ -258,6 +294,9 @@ window.onload = function() {
     document.getElementById('brand').addEventListener('change', handleBrandChange);
     document.getElementById('model').addEventListener('change', updateShopDropdown);
     document.getElementById('year').addEventListener('change', updateShopDropdown);
+    
+    // Live processing binding event tracker hook on key changes for the search input
+    document.getElementById('inventorySearch').addEventListener('input', updateInventoryUI);
     
     handleBrandChange();
 };
