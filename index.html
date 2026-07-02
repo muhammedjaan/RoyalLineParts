@@ -36,7 +36,6 @@
 </head>
 <body>
 
-<!-- Menu Tabs -->
 <div class="navbar">
     <button id="btn-shop" class="active" onclick="switchTab('shop')">Checkout Terminal</button>
     <button id="btn-inventory" onclick="switchTab('inventory')">Inventory Management</button>
@@ -44,7 +43,6 @@
 
 <div class="container">
     
-    <!-- SHOP / CHECKOUT TAB -->
     <div id="shop" class="tab-content active">
         <h2>Parts Selection System</h2>
         
@@ -73,8 +71,7 @@
         <div class="form-group">
             <label for="part">Required Part</label>
             <select id="part">
-                <!-- Options populated by JavaScript based on stock -->
-            </select>
+                </select>
         </div>
 
         <div class="form-group">
@@ -90,19 +87,17 @@
         <div class="cart-section">
             <h3>Current Repair Order Cart</h3>
             <div id="cartItems"></div>
-            <div class="total">Total: $<span id="cartTotal">0</span></div>
+            <div class="total">Total: AED <span id="cartTotal">0</span></div>
             <button class="success-btn" onclick="checkoutOrder()">Process Checkout</button>
         </div>
     </div>
 
-    <!-- INVENTORY MANAGEMENT TAB -->
     <div id="inventory" class="tab-content">
         <h2>Inventory Management</h2>
         <p>Update stock levels below. Changes save locally.</p>
         
         <div class="inventory-section" id="inventoryList">
-            <!-- Inventory items populated by JavaScript -->
-        </div>
+            </div>
     </div>
 
 </div>
@@ -143,7 +138,7 @@
             option.setAttribute('data-price', data.price);
             
             if (data.stock > 0) {
-                option.innerText = `${partName} ($${data.price}) - In Stock: ${data.stock}`;
+                option.innerText = `${partName} (AED ${data.price}) - In Stock: ${data.stock}`;
             } else {
                 option.innerText = `${partName} (OUT OF STOCK)`;
                 option.disabled = true;
@@ -187,7 +182,7 @@
             const div = document.createElement('div');
             div.className = 'row-item';
             div.innerHTML = `<span>${item.description}</span> 
-                             <span>$${item.price} <button onclick="removeFromCart(${index})" style="margin-left:10px; color:red; cursor:pointer;">X</button></span>`;
+                             <span>AED ${item.price} <button onclick="removeFromCart(${index})" style="margin-left:10px; color:red; cursor:pointer;">X</button></span>`;
             cartItemsContainer.appendChild(div);
         });
 
@@ -214,7 +209,7 @@
         // Save new stock to local storage
         localStorage.setItem('shopInventory', JSON.stringify(inventory));
 
-        alert(`Checkout Successful! Total: $${totalCost}`);
+        alert(`Checkout Successful! Total: AED ${totalCost}`);
         cart = [];
         totalCost = 0;
         updateCartUI();
@@ -230,7 +225,7 @@
             const div = document.createElement('div');
             div.className = 'row-item';
             div.innerHTML = `
-                <span><strong>${partName}</strong> (Price: $${data.price})</span>
+                <span><strong>${partName}</strong> (Price: AED ${data.price})</span>
                 <div>
                     <span>Current Stock: <strong>${data.stock}</strong></span>
                     <input type="number" id="addStock-${partName}" class="stock-input" placeholder="Qty">
