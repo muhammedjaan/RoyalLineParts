@@ -1,79 +1,91 @@
-// 1. Vehicle Configurations Dictionary (Links models to their specific brands)
+// 1. Vehicle Configurations Dictionary
 const modelsByBrand = {
     "Cadillac": ["CT5", "Escalade"],
     "Chevrolet": ["Camaro", "Corvette"],
     "GMC": ["Yukon", "Sierra"]
 };
 
-// 2. Comprehensive Inventory Dataset (All models, years 2020-2026, and specific pricing in AED)
+// 2. Comprehensive Inventory Dataset (Split into independent New and Used records)
 const defaultInventory = {
     // --- CHEVROLET CAMARO ---
-    "Chevrolet-Camaro-2026-Brake Pads": { price: 1250, stock: 5 },
-    "Chevrolet-Camaro-2026-Oil Filter": { price: 110, stock: 12 },
-    "Chevrolet-Camaro-2025-Brake Pads": { price: 1150, stock: 4 },
-    "Chevrolet-Camaro-2025-Oil Filter": { price: 105, stock: 10 },
-    "Chevrolet-Camaro-2024-Brake Pads": { price: 1050, stock: 6 },
-    "Chevrolet-Camaro-2024-Oil Filter": { price: 95, stock: 15 },
-    "Chevrolet-Camaro-2023-Brake Pads": { price: 980, stock: 3 },
-    "Chevrolet-Camaro-2022-Brake Pads": { price: 920, stock: 4 },
-    "Chevrolet-Camaro-2021-Brake Pads": { price: 850, stock: 5 },
-    "Chevrolet-Camaro-2020-Brake Pads": { price: 800, stock: 7 },
+    "Chevrolet-Camaro-2026-Brake Pads-New": { price: 1250, stock: 5 },
+    "Chevrolet-Camaro-2026-Brake Pads-Used": { price: 750, stock: 2 },
+    "Chevrolet-Camaro-2026-Oil Filter-New": { price: 110, stock: 12 },
+    "Chevrolet-Camaro-2026-Oil Filter-Used": { price: 65, stock: 4 },
+    "Chevrolet-Camaro-2025-Brake Pads-New": { price: 1150, stock: 4 },
+    "Chevrolet-Camaro-2025-Brake Pads-Used": { price: 690, stock: 3 },
+    "Chevrolet-Camaro-2025-Oil Filter-New": { price: 105, stock: 10 },
+    "Chevrolet-Camaro-2025-Oil Filter-Used": { price: 60, stock: 2 },
+    "Chevrolet-Camaro-2024-Brake Pads-New": { price: 1050, stock: 6 },
+    "Chevrolet-Camaro-2024-Brake Pads-Used": { price: 630, stock: 1 },
+    "Chevrolet-Camaro-2024-Oil Filter-New": { price: 95, stock: 15 },
+    "Chevrolet-Camaro-2024-Oil Filter-Used": { price: 55, stock: 5 },
 
     // --- CHEVROLET CORVETTE ---
-    "Chevrolet-Corvette-2026-Brake Pads": { price: 2450, stock: 2 },
-    "Chevrolet-Corvette-2026-Oil Filter": { price: 180, stock: 8 },
-    "Chevrolet-Corvette-2025-Brake Pads": { price: 2300, stock: 3 },
-    "Chevrolet-Corvette-2024-Brake Pads": { price: 2150, stock: 4 },
-    "Chevrolet-Corvette-2023-Brake Pads": { price: 1950, stock: 2 },
-    "Chevrolet-Corvette-2022-Brake Pads": { price: 1800, stock: 5 },
-    "Chevrolet-Corvette-2021-Brake Pads": { price: 1700, stock: 3 },
-    "Chevrolet-Corvette-2020-Brake Pads": { price: 1600, stock: 4 },
+    "Chevrolet-Corvette-2026-Brake Pads-New": { price: 2450, stock: 2 },
+    "Chevrolet-Corvette-2026-Brake Pads-Used": { price: 1470, stock: 1 },
+    "Chevrolet-Corvette-2026-Oil Filter-New": { price: 180, stock: 8 },
+    "Chevrolet-Corvette-2026-Oil Filter-Used": { price: 110, stock: 3 },
+    "Chevrolet-Corvette-2025-Brake Pads-New": { price: 2300, stock: 3 },
+    "Chevrolet-Corvette-2025-Brake Pads-Used": { price: 1380, stock: 1 },
 
     // --- CADILLAC CT5 ---
-    "Cadillac-CT5-2026-Brake Pads": { price: 1450, stock: 6 },
-    "Cadillac-CT5-2026-Oil Filter": { price: 140, stock: 10 },
-    "Cadillac-CT5-2025-Brake Pads": { price: 1350, stock: 5 },
-    "Cadillac-CT5-2024-Brake Pads": { price: 1250, stock: 4 },
-    "Cadillac-CT5-2023-Brake Pads": { price: 1150, stock: 6 },
-    "Cadillac-CT5-2022-Brake Pads": { price: 1050, stock: 8 },
-    "Cadillac-CT5-2021-Brake Pads": { price: 980, stock: 5 },
-    "Cadillac-CT5-2020-Brake Pads": { price: 900, stock: 6 },
+    "Cadillac-CT5-2026-Brake Pads-New": { price: 1450, stock: 6 },
+    "Cadillac-CT5-2026-Brake Pads-Used": { price: 870, stock: 4 },
+    "Cadillac-CT5-2026-Oil Filter-New": { price: 140, stock: 10 },
+    "Cadillac-CT5-2026-Oil Filter-Used": { price: 85, stock: 6 },
+    "Cadillac-CT5-2025-Brake Pads-New": { price: 1350, stock: 5 },
+    "Cadillac-CT5-2025-Brake Pads-Used": { price: 810, stock: 2 },
 
     // --- CADILLAC ESCALADE ---
-    "Cadillac-Escalade-2026-Brake Pads": { price: 1950, stock: 4 },
-    "Cadillac-Escalade-2026-Air Filter": { price: 260, stock: 10 },
-    "Cadillac-Escalade-2025-Brake Pads": { price: 1850, stock: 3 },
-    "Cadillac-Escalade-2025-Air Filter": { price: 240, stock: 8 },
-    "Cadillac-Escalade-2024-Brake Pads": { price: 1750, stock: 5 },
-    "Cadillac-Escalade-2023-Brake Pads": { price: 1650, stock: 4 },
-    "Cadillac-Escalade-2022-Brake Pads": { price: 1550, stock: 6 },
-    "Cadillac-Escalade-2021-Brake Pads": { price: 1400, stock: 4 },
-    "Cadillac-Escalade-2020-Brake Pads": { price: 1300, stock: 5 },
+    "Cadillac-Escalade-2026-Brake Pads-New": { price: 1950, stock: 4 },
+    "Cadillac-Escalade-2026-Brake Pads-Used": { price: 1170, stock: 2 },
+    "Cadillac-Escalade-2026-Air Filter-New": { price: 260, stock: 10 },
+    "Cadillac-Escalade-2026-Air Filter-Used": { price: 155, stock: 4 },
+    "Cadillac-Escalade-2025-Brake Pads-New": { price: 1850, stock: 3 },
+    "Cadillac-Escalade-2025-Brake Pads-Used": { price: 1110, stock: 1 },
 
     // --- GMC YUKON ---
-    "GMC-Yukon-2026-Brake Pads": { price: 1350, stock: 8 },
-    "GMC-Yukon-2026-Alternator": { price: 1800, stock: 2 },
-    "GMC-Yukon-2025-Brake Pads": { price: 1250, stock: 6 },
-    "GMC-Yukon-2024-Alternator": { price: 1650, stock: 3 },
-    "GMC-Yukon-2023-Brake Pads": { price: 1150, stock: 5 },
-    "GMC-Yukon-2022-Brake Pads": { price: 1050, stock: 7 },
-    "GMC-Yukon-2021-Brake Pads": { price: 950, stock: 6 },
-    "GMC-Yukon-2020-Brake Pads": { price: 880, stock: 8 },
+    "GMC-Yukon-2026-Brake Pads-New": { price: 1350, stock: 8 },
+    "GMC-Yukon-2026-Brake Pads-Used": { price: 810, stock: 3 },
+    "GMC-Yukon-2026-Alternator-New": { price: 1800, stock: 2 },
+    "GMC-Yukon-2026-Alternator-Used": { price: 1080, stock: 1 },
 
     // --- GMC SIERRA ---
-    "GMC-Sierra-2025-Brake Pads": { price: 1150, stock: 7 },
-    "GMC-Sierra-2024-Brake Pads": { price: 1050, stock: 8 },
-    "GMC-Sierra-2023-Brake Pads": { price: 980, stock: 10 },
-    "GMC-Sierra-2022-Brake Pads": { price: 920, stock: 5 },
-    "GMC-Sierra-2021-Brake Pads": { price: 850, stock: 6 },
-    "GMC-Sierra-2020-Brake Pads": { price: 800, stock: 9 }
+    "GMC-Sierra-2025-Brake Pads-New": { price: 1150, stock: 7 },
+    "GMC-Sierra-2025-Brake Pads-Used": { price: 690, stock: 2 }
 };
 
 let inventory = JSON.parse(localStorage.getItem('shopInventory')) || defaultInventory;
+
+// Auto-Migration Module: Converts any legacy database entry formats into clean individual entries
+let needsMigration = false;
+for (const key in inventory) {
+    if (!key.endsWith('-New') && !key.endsWith('-Used')) {
+        needsMigration = true;
+        break;
+    }
+}
+if (needsMigration) {
+    let migrated = {};
+    for (const key in inventory) {
+        if (!key.endsWith('-New') && !key.endsWith('-Used')) {
+            const old = inventory[key];
+            const basePrice = old.price || old.priceNew || 1000;
+            migrated[`${key}-New`] = { price: basePrice, stock: old.stock || 5 };
+            migrated[`${key}-Used`] = { price: old.priceUsed || Math.floor(basePrice * 0.6), stock: Math.max(1, Math.floor(old.stock / 2) || 2) };
+        } else {
+            migrated[key] = inventory[key];
+        }
+    }
+    inventory = migrated;
+    localStorage.setItem('shopInventory', JSON.stringify(inventory));
+}
+
 let cart = [];
 let totalCost = 0;
 
-// 3. Navigation Controls (Handles switching tabs)
+// 3. Navigation Controls
 function switchTab(tabId) {
     document.getElementById('shop').classList.remove('active');
     document.getElementById('inventory').classList.remove('active');
@@ -87,7 +99,7 @@ function switchTab(tabId) {
     updateInventoryUI();
 }
 
-// 4. Model Populator (Changes the models dropdown based on selected Brand)
+// 4. Model Populator
 function handleBrandChange() {
     const selectedBrand = document.getElementById('brand').value;
     const modelSelect = document.getElementById('model');
@@ -104,21 +116,26 @@ function handleBrandChange() {
     updateShopDropdown();
 }
 
-// 5. Parts Populator Matrix (Filters and drops parts matching Brand, Model, and Year)
+// 5. Parts Populator Matrix (Filters match by variant AND explicit condition state)
 function updateShopDropdown() {
     const partSelect = document.getElementById('part');
     const currentBrand = document.getElementById('brand').value;
     const currentModel = document.getElementById('model').value;
     const currentYear = document.getElementById('year').value;
+    const currentCondition = document.getElementById('condition').value; // 'New' or 'Used'
     
     partSelect.innerHTML = ''; 
     let partsFound = false;
     
     for (const [dbKey, data] of Object.entries(inventory)) {
-        const [invBrand, invModel, invYear, ...partNameArray] = dbKey.split('-');
-        const invPartName = partNameArray.join('-');
+        const segments = dbKey.split('-');
+        const invBrand = segments[0];
+        const invModel = segments[1];
+        const invYear = segments[2];
+        const invCondition = segments[segments.length - 1];
+        const invPartName = segments.slice(3, segments.length - 1).join('-');
         
-        if (invBrand === currentBrand && invModel === currentModel && invYear === currentYear) {
+        if (invBrand === currentBrand && invModel === currentModel && invYear === currentYear && invCondition === currentCondition) {
             partsFound = true;
             const option = document.createElement('option');
             
@@ -137,7 +154,7 @@ function updateShopDropdown() {
 
     if (!partsFound) {
         const option = document.createElement('option');
-        option.innerText = "No parts registered for this variant";
+        option.innerText = `No ${currentCondition} parts registered for this variant`;
         option.disabled = true;
         partSelect.appendChild(option);
     }
@@ -151,10 +168,14 @@ function addToCart() {
         return;
     }
 
-    const condition = document.getElementById('condition').value;
     const dbItemKey = partSelect.value; 
-    const [brand, model, year, ...partNameArray] = dbItemKey.split('-');
-    const partName = partNameArray.join('-');
+    const segments = dbItemKey.split('-');
+    const brand = segments[0];
+    const model = segments[1];
+    const year = segments[2];
+    const condition = segments[segments.length - 1];
+    const partName = segments.slice(3, segments.length - 1).join('-');
+    
     const price = parseInt(partSelect.options[partSelect.selectedIndex].getAttribute('data-price'));
 
     const countInCart = cart.filter(item => item.dbKey === dbItemKey).length;
@@ -170,7 +191,6 @@ function addToCart() {
     cartUIUpdate();
 }
 
-// UI Cart View Refresh Setup
 function cartUIUpdate() {
     const cartItemsContainer = document.getElementById('cartItems');
     cartItemsContainer.innerHTML = '';
@@ -179,21 +199,19 @@ function cartUIUpdate() {
         const div = document.createElement('div');
         div.className = 'row-item';
         div.innerHTML = `<span>${item.description}</span> 
-                         <span>AED ${item.price} <button onclick="removeFromCart(${index})" style="margin-left:10px; color:red; cursor:pointer;">X</button></span>`;
+                         <span>AED ${item.price} <button onclick="removeFromCart(${index})" style="margin-left:10px; color:red; cursor:pointer; background:none; border:none; font-weight:bold;">X</button></span>`;
         cartItemsContainer.appendChild(div);
     });
 
     document.getElementById('cartTotal').innerText = totalCost;
 }
 
-// Remove item from cart
 function removeFromCart(index) {
     totalCost -= cart[index].price;
     cart.splice(index, 1);
     cartUIUpdate();
 }
 
-// Complete checkout processing
 function checkoutOrder() {
     if (cart.length === 0) {
         alert("Your repair order card is empty!");
@@ -213,37 +231,48 @@ function checkoutOrder() {
     updateShopDropdown();
 }
 
-// 7. Backend Administration Logic (Live search filter view + Price/Stock updates)
+// 7. Backend Administration Logic (Independent value management list layout)
 function updateInventoryUI() {
     const invContainer = document.getElementById('inventoryList');
     const searchFilter = document.getElementById('inventorySearch').value.toLowerCase();
     invContainer.innerHTML = '';
 
     for (const [dbKey, data] of Object.entries(inventory)) {
-        const displayName = dbKey.replace(/-/g, ' '); 
+        const segments = dbKey.split('-');
+        const brand = segments[0];
+        const model = segments[1];
+        const year = segments[2];
+        const condition = segments[segments.length - 1];
+        const partName = segments.slice(3, segments.length - 1).join('-');
         
-        // Dynamic search checking filter matches
+        const displayName = `${brand} ${model} (${year}) ${partName} [${condition}]`;
+        
         if (!displayName.toLowerCase().includes(searchFilter)) {
             continue;
         }
         
         const div = document.createElement('div');
         div.className = 'row-item';
+        
+        const badgeColor = condition === 'New' ? '#28a745' : '#ffc107';
+        const textStyleColor = condition === 'New' ? '#fff' : '#000';
+        
         div.innerHTML = `
             <div style="flex: 1; padding-right: 10px;">
-                <strong>${displayName}</strong>
-                <div style="font-size: 14px; margin-top: 4px; color: #555;">
-                    Price: <strong>AED ${data.price}</strong> | Stock: <strong>${data.stock}</strong>
+                <span style="background-color: ${badgeColor}; color: ${textStyleColor}; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 3px; margin-right: 6px; vertical-align: middle;">${condition.toUpperCase()}</span>
+                <strong style="vertical-align: middle;">${brand} ${model} (${year}) - ${partName}</strong>
+                <div style="font-size: 14px; margin-top: 6px; color: #555;">
+                    Current Price: <strong style="color: #007bff;">AED ${data.price}</strong> | Available Stock: <strong>${data.stock} units</strong>
                 </div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <div>
-                    <input type="number" id="editPrice-${dbKey}" class="stock-input" placeholder="New Price" style="width: 90px;">
+                    <input type="number" id="editPrice-${dbKey}" class="stock-input" placeholder="New Price" style="width: 95px;">
                     <button class="action-btn" style="width: auto; padding: 6px 12px; margin: 0; background-color: #17a2b8;" onclick="updatePrice('${dbKey}')">Set Price</button>
                 </div>
                 <div>
-                    <input type="number" id="addStock-${dbKey}" class="stock-input" placeholder="Qty">
-                    <button class="action-btn" style="width: auto; padding: 6px 12px; margin: 0; background-color: #28a745;" onclick="addStock('${dbKey}')">Add Stock</button>
+                    <input type="number" id="addStock-${dbKey}" class="stock-input" placeholder="Qty" style="width: 60px;">
+                    <button class="action-btn" style="width: auto; padding: 6px 12px; margin: 0; background-color: #343a40;" onclick="addStock('${dbKey}')">Add</button>
                 </div>
             </div>
         `;
@@ -251,7 +280,7 @@ function updateInventoryUI() {
     }
 }
 
-// Modify database price values directly
+// Modify independent price data point explicitly
 function updatePrice(dbKey) {
     const inputField = document.getElementById(`editPrice-${dbKey}`);
     const newPrice = parseInt(inputField.value);
@@ -267,10 +296,9 @@ function updatePrice(dbKey) {
     inputField.value = ''; 
     updateInventoryUI();
     updateShopDropdown();
-    alert(`Price successfully updated.`);
+    alert(`Price updated successfully.`);
 }
 
-// Update database quantity updates
 function addStock(dbKey) {
     const inputField = document.getElementById(`addStock-${dbKey}`);
     const qtyToAdd = parseInt(inputField.value);
@@ -286,16 +314,16 @@ function addStock(dbKey) {
     inputField.value = ''; 
     updateInventoryUI();
     updateShopDropdown();
-    alert(`Stock level successfully adjusted.`);
+    alert(`Stock configuration adjusted.`);
 }
 
-// Global Event Listener Handlers Hook
+// Global Event Listeners
 window.onload = function() {
     document.getElementById('brand').addEventListener('change', handleBrandChange);
     document.getElementById('model').addEventListener('change', updateShopDropdown);
     document.getElementById('year').addEventListener('change', updateShopDropdown);
+    document.getElementById('condition').addEventListener('change', updateShopDropdown); // Updates options when switching New/Used
     
-    // Live processing binding event tracker hook on key changes for the search input
     document.getElementById('inventorySearch').addEventListener('input', updateInventoryUI);
     
     handleBrandChange();
