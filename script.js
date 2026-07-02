@@ -5,47 +5,20 @@ const modelsByBrand = {
     "GMC": ["Yukon", "Sierra"]
 };
 
-// 2. Comprehensive Inventory Dataset (Split into independent New and Used records)
+// 2. Comprehensive Inventory Dataset 
+// Here, OEM New and OEM Used are treated as entirely different items in the database.
 const defaultInventory = {
-    "Chevrolet-Camaro-2026-Brake Pads-New": { price: 1250, stock: 5 },
-    "Chevrolet-Camaro-2026-Brake Pads-Used": { price: 750, stock: 2 },
-    "Chevrolet-Camaro-2026-Oil Filter-New": { price: 110, stock: 12 },
-    "Chevrolet-Camaro-2026-Oil Filter-Used": { price: 65, stock: 4 },
-    "Chevrolet-Camaro-2025-Brake Pads-New": { price: 1150, stock: 4 },
-    "Chevrolet-Camaro-2025-Brake Pads-Used": { price: 690, stock: 3 },
-    "Cadillac-CT5-2026-Brake Pads-New": { price: 1450, stock: 6 },
-    "Cadillac-CT5-2026-Brake Pads-Used": { price: 870, stock: 4 },
-    "Cadillac-Escalade-2026-Brake Pads-New": { price: 1950, stock: 4 },
-    "Cadillac-Escalade-2026-Brake Pads-Used": { price: 1170, stock: 2 },
-    "GMC-Yukon-2026-Brake Pads-New": { price: 1350, stock: 8 },
-    "GMC-Yukon-2026-Brake Pads-Used": { price: 810, stock: 3 }
+    "Cadillac-CT5-2026-Brake Pads (OEM New)": { price: 1450, stock: 6 },
+    "Cadillac-CT5-2026-Brake Pads (OEM Used)": { price: 870, stock: 4 },
+    "Cadillac-Escalade-2026-Air Filter (OEM New)": { price: 250, stock: 15 },
+    "Cadillac-Escalade-2026-Air Filter (OEM Used)": { price: 100, stock: 2 },
+    "Chevrolet-Camaro-2026-Brake Pads (OEM New)": { price: 1250, stock: 5 },
+    "Chevrolet-Camaro-2026-Brake Pads (OEM Used)": { price: 750, stock: 2 },
+    "GMC-Yukon-2026-Brake Pads (OEM New)": { price: 1350, stock: 8 }
 };
 
-let inventory = JSON.parse(localStorage.getItem('shopInventory')) || defaultInventory;
-
-// Auto-Migration Module (Gracefully converts old setups without crashing)
-let needsMigration = false;
-for (const key in inventory) {
-    if (!key.endsWith('-New') && !key.endsWith('-Used')) {
-        needsMigration = true;
-        break;
-    }
-}
-if (needsMigration) {
-    let migrated = {};
-    for (const key in inventory) {
-        if (!key.endsWith('-New') && !key.endsWith('-Used')) {
-            const old = inventory[key];
-            const basePrice = old.price || old.priceNew || 1000;
-            migrated[`${key}-New`] = { price: basePrice, stock: old.stock || 5 };
-            migrated[`${key}-Used`] = { price: old.priceUsed || Math.floor(basePrice * 0.6), stock: Math.max(1, Math.floor((old.stock || 0) / 2) || 2) };
-        } else {
-            migrated[key] = inventory[key];
-        }
-    }
-    inventory = migrated;
-    localStorage.setItem('shopInventory', JSON.stringify(inventory));
-}
+// Using a new storage key so your browser loads the fresh separated data
+let inventory = JSON.parse(localStorage.getItem('aftersalesInventory')) || defaultInventory;
 
 let cart = [];
 let totalCost = 0;
@@ -81,15 +54,12 @@ function handleBrandChange() {
     updateShopDropdown();
 }
 
-// 5. Parts Populator Matrix (Matches exact criteria and checks separate values)
+// 5. Parts Populator Matrix
 function updateShopDropdown() {
     const partSelect = document.getElementById('part');
     const currentBrand = document.getElementById('brand').value;
     const currentModel = document.getElementById('model').value;
     const currentYear = document.getElementById('year').value;
-    
-    const conditionElement = document.getElementById('condition');
-    const currentCondition = conditionElement ? conditionElement.value : 'New'; 
     
     partSelect.innerHTML = ''; 
     let partsFound = false;
@@ -99,10 +69,9 @@ function updateShopDropdown() {
         const invBrand = segments[0];
         const invModel = segments[1];
         const invYear = segments[2];
-        const invCondition = segments[segments.length - 1];
-        const invPartName = segments.slice(3, segments.length - 1).join('-');
+        const invPartName = segments.slice(3).join('-'); 
         
-        if (invBrand === currentBrand && invModel === currentModel && invYear === currentYear && invCondition === currentCondition) {
+        if (invBrand === currentBrand && invModel === currentModel && invYear === currentYear) {
             partsFound = true;
             const option = document.createElement('option');
             
@@ -121,7 +90,7 @@ function updateShopDropdown() {
 
     if (!partsFound) {
         const option = document.createElement('option');
-        option.innerText = `No ${currentCondition} items listed under this variant setup`;
+        option.innerText = `No parts registered for this variant`;
         option.disabled = true;
         partSelect.appendChild(option);
     }
@@ -140,8 +109,7 @@ function addToCart() {
     const brand = segments[0];
     const model = segments[1];
     const year = segments[2];
-    const condition = segments[segments.length - 1];
-    const partName = segments.slice(3, segments.length - 1).join('-');
+    const partName = segments.slice(3).join('-');
     
     const price = parseInt(partSelect.options[partSelect.selectedIndex].getAttribute('data-price'));
 
@@ -151,7 +119,7 @@ function addToCart() {
         return;
     }
 
-    const description = `${year} ${brand} ${model} ${partName} (${condition})`;
+    const description = `${year} ${brand} ${model} ${partName}`;
     
     cart.push({ dbKey: dbItemKey, description: description, price: price });
     totalCost += price;
@@ -189,7 +157,7 @@ function checkoutOrder() {
         inventory[item.dbKey].stock -= 1;
     });
 
-    localStorage.setItem('shopInventory', JSON.stringify(inventory));
+    localStorage.setItem('aftersalesInventory', JSON.stringify(inventory));
 
     alert(`Transaction Invoiced! Total: AED ${totalCost}`);
     cart = [];
@@ -198,7 +166,7 @@ function checkoutOrder() {
     updateShopDropdown();
 }
 
-// 7. Backend Administration Logic (Independent value adjustments)
+// 7. Backend Administration Logic 
 function updateInventoryUI() {
     const invContainer = document.getElementById('inventoryList');
     const searchFilter = document.getElementById('inventorySearch') ? document.getElementById('inventorySearch').value.toLowerCase() : "";
@@ -209,21 +177,16 @@ function updateInventoryUI() {
         const brand = segments[0];
         const model = segments[1];
         const year = segments[2];
-        const condition = segments[segments.length - 1];
-        const partName = segments.slice(3, segments.length - 1).join('-');
+        const partName = segments.slice(3).join('-');
         
-        const displayName = `${brand} ${model} (${year}) ${partName} [${condition}]`;
+        const displayName = `${brand} ${model} (${year}) ${partName}`;
         
         if (!displayName.toLowerCase().includes(searchFilter)) continue;
-        
-        const badgeColor = condition === 'New' ? '#28a745' : '#ffc107';
-        const textStyleColor = condition === 'New' ? '#fff' : '#000';
         
         const div = document.createElement('div');
         div.className = 'row-item';
         div.innerHTML = `
             <div style="flex: 1; padding-right: 10px;">
-                <span style="background-color: ${badgeColor}; color: ${textStyleColor}; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 3px; margin-right: 6px; vertical-align: middle;">${condition.toUpperCase()}</span>
                 <strong style="vertical-align: middle;">${brand} ${model} (${year}) - ${partName}</strong>
                 <div style="font-size: 14px; margin-top: 6px; color: #555;">
                     Current Price: <strong style="color: #007bff;">AED ${data.price}</strong> | Available Stock: <strong>${data.stock} units</strong>
@@ -254,7 +217,7 @@ function updatePrice(dbKey) {
     }
 
     inventory[dbKey].price = newPrice;
-    localStorage.setItem('shopInventory', JSON.stringify(inventory));
+    localStorage.setItem('aftersalesInventory', JSON.stringify(inventory));
     
     inputField.value = ''; 
     updateInventoryUI();
@@ -272,7 +235,7 @@ function addStock(dbKey) {
     }
 
     inventory[dbKey].stock += qtyToAdd;
-    localStorage.setItem('shopInventory', JSON.stringify(inventory));
+    localStorage.setItem('aftersalesInventory', JSON.stringify(inventory));
     
     inputField.value = ''; 
     updateInventoryUI();
@@ -285,10 +248,6 @@ window.onload = function() {
     if(document.getElementById('brand')) document.getElementById('brand').addEventListener('change', handleBrandChange);
     if(document.getElementById('model')) document.getElementById('model').addEventListener('change', updateShopDropdown);
     if(document.getElementById('year')) document.getElementById('year').addEventListener('change', updateShopDropdown);
-    
-    const conditionDropdown = document.getElementById('condition');
-    if(conditionDropdown) conditionDropdown.addEventListener('change', updateShopDropdown);
-    
     if(document.getElementById('inventorySearch')) document.getElementById('inventorySearch').addEventListener('input', updateInventoryUI);
     
     handleBrandChange();
