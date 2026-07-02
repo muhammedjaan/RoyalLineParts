@@ -16,7 +16,7 @@
         
         /* Tab Control */
         .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tab-content.active { block; display: block; }
         
         /* Form Styles */
         .form-group { margin-bottom: 15px; }
@@ -53,6 +53,12 @@
                 <option value="Chevrolet">Chevrolet</option>
                 <option value="GMC">GMC</option>
             </select>
+        </div>
+
+        <div class="form-group">
+            <label for="model">Vehicle Model</label>
+            <select id="model">
+                </select>
         </div>
 
         <div class="form-group">
@@ -94,7 +100,7 @@
 
     <div id="inventory" class="tab-content">
         <h2>Inventory Management</h2>
-        <p>Update stock levels below. Changes save locally.</p>
+        <p>Update stock levels below. Prices and stock are linked to specific brands, models, and years. Changes save locally.</p>
         
         <div class="inventory-section" id="inventoryList">
             </div>
@@ -103,162 +109,18 @@
 </div>
 
 <script>
-    // 1. Initial Stock Data (Saves to browser memory)
+    // 1. Vehicles Configuration Dictionary
+    const modelsByBrand = {
+        "Cadillac": ["CT5", "Escalade"],
+        "Chevrolet": ["Camaro", "Corvette"],
+        "GMC": ["Yukon", "Sierra"]
+    };
+
+    // 2. Initial Unique Database Stock Data 
+    // Format: "Brand-Model-Year-PartName"
     const defaultInventory = {
-        "Brake Pads": { price: 200, stock: 5 },
-        "Oil Filter": { price: 45, stock: 10 }
-    };
-
-    let inventory = JSON.parse(localStorage.getItem('shopInventory')) || defaultInventory;
-    let cart = [];
-    let totalCost = 0;
-
-    // 2. Tab Switching Logic
-    function switchTab(tabId) {
-        document.getElementById('shop').classList.remove('active');
-        document.getElementById('inventory').classList.remove('active');
-        document.getElementById('btn-shop').classList.remove('active');
-        document.getElementById('btn-inventory').classList.remove('active');
-        
-        document.getElementById(tabId).classList.add('active');
-        document.getElementById('btn-' + tabId).classList.add('active');
-
-        updateShopDropdown();
-        updateInventoryUI();
-    }
-
-    // 3. Update the Parts Dropdown (Hides out-of-stock items)
-    function updateShopDropdown() {
-        const partSelect = document.getElementById('part');
-        partSelect.innerHTML = ''; 
-        
-        for (const [partName, data] of Object.entries(inventory)) {
-            const option = document.createElement('option');
-            option.value = partName;
-            option.setAttribute('data-price', data.price);
-            
-            if (data.stock > 0) {
-                option.innerText = `${partName} (AED ${data.price}) - In Stock: ${data.stock}`;
-            } else {
-                option.innerText = `${partName} (OUT OF STOCK)`;
-                option.disabled = true;
-            }
-            partSelect.appendChild(option);
-        }
-    }
-
-    // 4. Cart Logic
-    function addToCart() {
-        const partSelect = document.getElementById('part');
-        if (partSelect.options.length === 0 || partSelect.options[partSelect.selectedIndex].disabled) {
-            alert("This item is out of stock!");
-            return;
-        }
-
-        const brand = document.getElementById('brand').value;
-        const year = document.getElementById('year').value;
-        const condition = document.getElementById('condition').value;
-        const partName = partSelect.value;
-        const price = parseInt(partSelect.options[partSelect.selectedIndex].getAttribute('data-price'));
-
-        // Check if adding this exceeds current stock
-        const countInCart = cart.filter(item => item.name === partName).length;
-        if (countInCart >= inventory[partName].stock) {
-            alert(`Cannot add more ${partName}. Maximum stock reached.`);
-            return;
-        }
-
-        const description = `${year} ${brand} ${partName} (${condition})`;
-        cart.push({ name: partName, description: description, price: price });
-        totalCost += price;
-        updateCartUI();
-    }
-
-    function updateCartUI() {
-        const cartItemsContainer = document.getElementById('cartItems');
-        cartItemsContainer.innerHTML = '';
-        
-        cart.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'row-item';
-            div.innerHTML = `<span>${item.description}</span> 
-                             <span>AED ${item.price} <button onclick="removeFromCart(${index})" style="margin-left:10px; color:red; cursor:pointer;">X</button></span>`;
-            cartItemsContainer.appendChild(div);
-        });
-
-        document.getElementById('cartTotal').innerText = totalCost;
-    }
-
-    function removeFromCart(index) {
-        totalCost -= cart[index].price;
-        cart.splice(index, 1);
-        updateCartUI();
-    }
-
-    function checkoutOrder() {
-        if (cart.length === 0) {
-            alert("Cart is empty!");
-            return;
-        }
-
-        // Deduct stock
-        cart.forEach(item => {
-            inventory[item.name].stock -= 1;
-        });
-
-        // Save new stock to local storage
-        localStorage.setItem('shopInventory', JSON.stringify(inventory));
-
-        alert(`Checkout Successful! Total: AED ${totalCost}`);
-        cart = [];
-        totalCost = 0;
-        updateCartUI();
-        updateShopDropdown(); // Refresh dropdown to show new stock limits
-    }
-
-    // 5. Inventory Management Logic
-    function updateInventoryUI() {
-        const invContainer = document.getElementById('inventoryList');
-        invContainer.innerHTML = '';
-
-        for (const [partName, data] of Object.entries(inventory)) {
-            const div = document.createElement('div');
-            div.className = 'row-item';
-            div.innerHTML = `
-                <span><strong>${partName}</strong> (Price: AED ${data.price})</span>
-                <div>
-                    <span>Current Stock: <strong>${data.stock}</strong></span>
-                    <input type="number" id="addStock-${partName}" class="stock-input" placeholder="Qty">
-                    <button class="action-btn" style="width: auto; padding: 5px 10px; margin: 0;" onclick="addStock('${partName}')">Add Stock</button>
-                </div>
-            `;
-            invContainer.appendChild(div);
-        }
-    }
-
-    function addStock(partName) {
-        const inputField = document.getElementById(`addStock-${partName}`);
-        const qtyToAdd = parseInt(inputField.value);
-
-        if (isNaN(qtyToAdd) || qtyToAdd <= 0) {
-            alert("Please enter a valid number to add to stock.");
-            return;
-        }
-
-        inventory[partName].stock += qtyToAdd;
-        localStorage.setItem('shopInventory', JSON.stringify(inventory));
-        
-        inputField.value = ''; // clear input
-        updateInventoryUI();
-        updateShopDropdown();
-        alert(`Successfully added ${qtyToAdd} to ${partName}.`);
-    }
-
-    // Initialize the app on page load
-    window.onload = function() {
-        updateShopDropdown();
-    };
-</script>
-
-</body>
-</html>
+        "Chevrolet-Camaro-2026-Brake Pads": { price: 1250, stock: 5 },
+        "Chevrolet-Camaro-2025-Oil Filter": { price: 120, stock: 10 },
+        "Chevrolet-Corvette-2026-Brake Pads": { price: 2400, stock: 2 },
+        "Cadillac-CT5-2026-Brake Pads": { price: 1400, stock: 4 },
+        "Cadillac-Escalade-2026-Brake Pads": { price: 190
