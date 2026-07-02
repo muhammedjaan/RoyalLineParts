@@ -3,124 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Terminal & Inventory System</title>
+    <title>OEM Parts Management System</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; color: #333; }
-        
-        /* Navigation Menu */
-        .navbar { background-color: #333; padding: 10px; text-align: center; }
-        .navbar button { background-color: #444; color: white; border: none; padding: 10px 20px; margin: 0 5px; cursor: pointer; font-size: 16px; border-radius: 4px; }
-        .navbar button.active, .navbar button:hover { background-color: #007bff; }
-        
-        .container { max-width: 750px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        /* Tab Control */
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #343a40;
+            --light: #f8f9fa;
+            --border: #dee2e6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        h1 { margin: 0; font-size: 24px; color: var(--dark); }
+
+        /* Navigation Tabs */
+        .tabs { display: flex; gap: 10px; }
+        .tab-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Views Configuration */
         .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        /* Form Styles */
+        .tab-content.active { display: grid; }
+
+        #shop { grid-template-columns: 2fr 1fr; gap: 20px; }
+
+        /* Card Styling */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+        .card h2 { margin-top: 0; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;}
+
+        /* Form Layouts */
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        select, input, button.action-btn { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        button.action-btn { background-color: #007bff; color: white; border: none; cursor: pointer; margin-top: 10px; }
-        button.action-btn:hover { background-color: #0056b3; }
-        button.success-btn { background-color: #28a745; color: white; border: none; padding: 10px; width: 100%; font-size: 16px; cursor: pointer; margin-top: 15px; border-radius: 4px; }
-        button.success-btn:hover { background-color: #218838; }
-        
-        /* Cart & Inventory Tables */
-        .cart-section, .inventory-section { margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
-        
-        /* Distinct Row Separation Lines */
-        .row-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 2px solid #e0e0e0; align-items: center; }
-        .row-item:last-child { border-bottom: none; }
-        
-        .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 15px; }
-        .stock-input { width: 85px; display: inline-block; margin-right: 5px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
-        
-        /* Scrollable Inventory List */
-        #inventoryList { max-height: 500px; overflow-y: auto; padding-right: 5px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            font-size: 15px;
+        }
+        .btn-success { background-color: var(--success); }
+
+        /* Dynamic Row Items */
+        .row-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            background: var(--light);
+            margin-bottom: 8px;
+            border-radius: 5px;
+        }
+
+        .stock-input {
+            width: 90px;
+            display: inline-block;
+            padding: 6px;
+            font-size: 14px;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #cartItems { max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+        .total-box { font-size: 18px; font-weight: bold; text-align: right; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div class="navbar">
-    <button id="btn-shop" class="active" onclick="switchTab('shop')">Checkout Terminal</button>
-    <button id="btn-inventory" onclick="switchTab('inventory')">Inventory Management</button>
-</div>
-
 <div class="container">
-    
+    <header>
+        <h1>OEM Workshop Parts Desk</h1>
+        <div class="tabs">
+            <button id="btn-shop" class="tab-btn active" onclick="switchTab('shop')">Sales Terminal</button>
+            <button id="btn-inventory" class="tab-btn" onclick="switchTab('inventory')">Inventory Manager</button>
+        </div>
+    </header>
+
     <div id="shop" class="tab-content active">
-        <h2>Parts Selection System</h2>
-        
-        <div class="form-group">
-            <label for="brand">Vehicle Brand</label>
-            <select id="brand">
-                <option value="Cadillac">Cadillac</option>
-                <option value="Chevrolet">Chevrolet</option>
-                <option value="GMC">GMC</option>
-            </select>
+        <div class="card">
+            <h2>Select Vehicle & Components</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label for="brand">Brand</label>
+                    <select id="brand">
+                        <option value="Cadillac">Cadillac</option>
+                        <option value="Chevrolet">Chevrolet</option>
+                        <option value="GMC">GMC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="model">Model</label>
+                    <select id="model"></select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Production Year</label>
+                    <select id="year">
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="condition">Component Classification</label>
+                <select id="condition">
+                    <option value="New">OEM Factory New</option>
+                    <option value="Used">OEM Certified Used</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="part">Available Matching Parts</label>
+                <select id="part"></select>
+            </div>
+
+            <button class="btn" onclick="addToCart()">Add Component to Order</button>
         </div>
 
-        <div class="form-group">
-            <label for="model">Vehicle Model</label>
-            <select id="model">
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="year">Model Year</label>
-            <select id="year">
-                <option value="2026">2026</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-                <option value="2021">2021</option>
-                <option value="2020">2020</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="part">Required Part</label>
-            <select id="part">
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="condition">Part Condition</label>
-            <select id="condition">
-                <option value="New">OEM New</option>
-                <option value="Used">OEM Used</option>
-            </select>
-        </div>
-
-        <button class="action-btn" onclick="addToCart()">Add Part to Work Order</button>
-
-        <div class="cart-section">
-            <h3>Current Repair Order Cart</h3>
-            <div id="cartItems"></div>
-            <div class="total">Total: AED <span id="cartTotal">0</span></div>
-            <button class="success-btn" onclick="checkoutOrder()">Process Checkout</button>
-        </div>
-    </div>
-
-    <div id="inventory" class="tab-content">
-        <h2>Inventory Management</h2>
-        <p>Update stock levels and pricing options below. Changes update the terminal instantly.</p>
-        
-        <div class="form-group">
-            <label for="inventorySearch">Search Parts Base</label>
-            <input type="text" id="inventorySearch" placeholder="Type a brand, model, year, or part to filter...">
-        </div>
-
-        <div class="inventory-section" id="inventoryList">
-        </div>
-    </div>
-
-</div>
-
-<script src="script.js"></script>
-
-</body>
-</html>
+        <div class="card">
