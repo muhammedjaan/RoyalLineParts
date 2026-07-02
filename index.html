@@ -39,7 +39,6 @@
 
         h1 { margin: 0; font-size: 24px; color: var(--dark); }
 
-        /* Navigation Tabs */
         .tabs { display: flex; gap: 10px; }
         .tab-btn {
             padding: 10px 20px;
@@ -56,13 +55,10 @@
             border-color: var(--primary);
         }
 
-        /* Views Configuration */
         .tab-content { display: none; }
         .tab-content.active { display: grid; }
-
         #shop { grid-template-columns: 2fr 1fr; gap: 20px; }
 
-        /* Card Styling */
         .card {
             background: white;
             padding: 20px;
@@ -72,7 +68,6 @@
         }
         .card h2 { margin-top: 0; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;}
 
-        /* Form Layouts */
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
         select, input {
@@ -97,7 +92,6 @@
         }
         .btn-success { background-color: var(--success); }
 
-        /* Dynamic Row Items */
         .row-item {
             display: flex;
             justify-content: space-between;
@@ -166,14 +160,6 @@
             </div>
 
             <div class="form-group">
-                <label for="condition">Component Classification</label>
-                <select id="condition">
-                    <option value="New">OEM Factory New</option>
-                    <option value="Used">OEM Certified Used</option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label for="part">Available Matching Parts</label>
                 <select id="part"></select>
             </div>
@@ -182,3 +168,24 @@
         </div>
 
         <div class="card">
+            <h2>Repair Order Sheet</h2>
+            <div id="cartItems"></div>
+            <div class="total-box">Total: AED <span id="cartTotal">0</span></div>
+            <button class="btn btn-success" onclick="checkoutOrder()">Fulfill & Invoice Order</button>
+        </div>
+    </div>
+
+    <div id="inventory" class="tab-content">
+        <div class="card" style="width: 100%;">
+            <h2>Master Inventory Registry Matrix</h2>
+            <div class="form-group">
+                <input type="text" id="inventorySearch" placeholder="Search by brand, component name...">
+            </div>
+            <div id="inventoryList"></div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
