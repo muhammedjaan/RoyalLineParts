@@ -29,11 +29,15 @@
         
         /* Cart & Inventory Tables */
         .cart-section, .inventory-section { margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
-        .row-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
-        .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 15px; }
-        .stock-input { width: 80px; display: inline-block; margin-right: 10px; }
         
-        /* Scrollable Inventory List for large dataset */
+        /* Distinct Row Separation Lines */
+        .row-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 2px solid #e0e0e0; align-items: center; }
+        .row-item:last-child { border-bottom: none; }
+        
+        .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 15px; }
+        .stock-input { width: 85px; display: inline-block; margin-right: 5px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        /* Scrollable Inventory List */
         #inventoryList { max-height: 500px; overflow-y: auto; padding-right: 5px; }
     </style>
 </head>
@@ -61,7 +65,7 @@
         <div class="form-group">
             <label for="model">Vehicle Model</label>
             <select id="model">
-                </select>
+            </select>
         </div>
 
         <div class="form-group">
@@ -80,7 +84,7 @@
         <div class="form-group">
             <label for="part">Required Part</label>
             <select id="part">
-                </select>
+            </select>
         </div>
 
         <div class="form-group">
@@ -103,10 +107,15 @@
 
     <div id="inventory" class="tab-content">
         <h2>Inventory Management</h2>
-        <p>Update stock levels below. Database tracks prices and stock individually per variant.</p>
+        <p>Update stock levels and pricing options below. Changes update the terminal instantly.</p>
         
+        <div class="form-group">
+            <label for="inventorySearch">Search Parts Base</label>
+            <input type="text" id="inventorySearch" placeholder="Type a brand, model, year, or part to filter...">
+        </div>
+
         <div class="inventory-section" id="inventoryList">
-            </div>
+        </div>
     </div>
 
 </div>
