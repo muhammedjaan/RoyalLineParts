@@ -1,30 +1,21 @@
-const modelsByBrand = {
-    "Cadillac": ["CT5", "Escalade"],
-    "Chevrolet": ["Camaro", "Corvette"],
-    "GMC": ["Yukon", "Sierra"]
-};
-
+const modelsByBrand = { "Cadillac": ["CT5", "Escalade"], "Chevrolet": ["Camaro", "Corvette"], "GMC": ["Yukon", "Sierra"] };
 let inventory = JSON.parse(localStorage.getItem('shopInventory')) || {
     "Chevrolet-Camaro-2026-Brake Pads": { price: 1250, stock: 5 },
-    "Cadillac-Escalade-2026-Brake Pads": { price: 1950, stock: 4 },
-    "GMC-Yukon-2026-Alternator": { price: 1800, stock: 2 }
+    "Chevrolet-Camaro-2026-Oil Filter": { price: 110, stock: 12 }
 };
-
 let cart = [];
 
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.navbar button').forEach(b => b.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
-    document.getElementById('btn-' + tabId).classList.add('active');
     if(tabId === 'inventory') updateInventoryUI();
 }
 
 function handleBrandChange() {
-    const brand = document.getElementById('brand');
+    const brand = document.getElementById('brand').value;
     const model = document.getElementById('model');
     model.innerHTML = '';
-    modelsByBrand[brand.value].forEach(m => {
+    modelsByBrand[brand].forEach(m => {
         let opt = document.createElement('option');
         opt.value = m; opt.innerText = m;
         model.appendChild(opt);
@@ -38,14 +29,20 @@ function updateInventoryUI() {
     list.innerHTML = '';
     for(let key in inventory) {
         if(key.toLowerCase().includes(term)) {
-            list.innerHTML += `<div class="row-item">
-                <span>${key.replace(/-/g, ' ')}</span>
-                <div>
-                    AED <input type="number" id="p-${key}" value="${inventory[key].price}" style="width:60px">
-                    <button onclick="updatePrice('${key}')">Set</button>
-                    Stock: ${inventory[key].stock} 
-                    <input type="number" id="s-${key}" placeholder="Qty" style="width:50px">
-                    <button onclick="addStock('${key}')">+</button>
+            list.innerHTML += `
+            <div class="row-item">
+                <div style="width: 40%; font-weight: bold;">${key.replace(/-/g, ' ')}</div>
+                <div class="controls-group">
+                    <div class="control-box">
+                        <small>AED</small>
+                        <input type="number" id="p-${key}" value="${inventory[key].price}" style="width:60px">
+                        <button onclick="updatePrice('${key}')">Set</button>
+                    </div>
+                    <div class="control-box">
+                        <small>Stock: ${inventory[key].stock}</small>
+                        <input type="number" id="s-${key}" placeholder="Qty" style="width:50px">
+                        <button onclick="addStock('${key}')">+</button>
+                    </div>
                 </div>
             </div>`;
         }
@@ -59,16 +56,18 @@ function updatePrice(key) {
 }
 
 function addStock(key) {
-    inventory[key].stock += parseInt(document.getElementById('s-' + key).value);
-    localStorage.setItem('shopInventory', JSON.stringify(inventory));
-    updateInventoryUI();
+    let qty = parseInt(document.getElementById('s-' + key).value);
+    if(!isNaN(qty)) {
+        inventory[key].stock += qty;
+        localStorage.setItem('shopInventory', JSON.stringify(inventory));
+        updateInventoryUI();
+    }
 }
 
-function updateShopDropdown() { /* Logic for dropdowns */ }
-
-// Initialize
+// Initialization
 window.onload = () => {
     const b = document.getElementById('brand');
     Object.keys(modelsByBrand).forEach(br => b.innerHTML += `<option value="${br}">${br}</option>`);
+    ['2026','2025','2024','2023','2022','2021','2020'].forEach(y => document.getElementById('year').innerHTML += `<option value="${y}">${y}</option>`);
     handleBrandChange();
 };
