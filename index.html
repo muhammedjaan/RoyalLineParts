@@ -3,29 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Terminal & Inventory</title>
+    <title>Shop Terminal</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; color: #333; }
-        .navbar { background-color: #333; padding: 10px; text-align: center; }
-        .navbar button { background-color: #444; color: white; border: none; padding: 10px 20px; margin: 0 5px; cursor: pointer; border-radius: 4px; }
-        .navbar button.active { background-color: #007bff; }
-        .container { max-width: 750px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .navbar { margin-bottom: 20px; display: flex; gap: 10px; }
+        .navbar button { padding: 10px 20px; cursor: pointer; }
+        .navbar button.active { background: #007bff; color: white; border: none; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .form-group { margin-bottom: 15px; }
-        input, select, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
-        .row-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
-        #inventoryList { max-height: 400px; overflow-y: auto; }
+        select, input, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
+        
+        /* Fixed Layout */
+        .row-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #ddd; }
+        .controls-group { display: flex; gap: 15px; align-items: center; }
+        .control-box { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 80px; }
+        #inventoryList { max-height: 500px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-<div class="navbar">
-    <button id="btn-shop" class="active" onclick="switchTab('shop')">Checkout Terminal</button>
-    <button id="btn-inventory" onclick="switchTab('inventory')">Inventory Management</button>
-</div>
-
 <div class="container">
+    <div class="navbar">
+        <button id="btn-shop" class="active" onclick="switchTab('shop')">Checkout</button>
+        <button id="btn-inventory" onclick="switchTab('inventory')">Inventory</button>
+    </div>
+
     <div id="shop" class="tab-content active">
         <h2>Parts Checkout</h2>
         <div class="form-group">
@@ -36,7 +40,7 @@
             <button onclick="addToCart()">Add to Order</button>
         </div>
         <div id="cartItems"></div>
-        <div style="text-align:right; font-weight:bold;">Total: AED <span id="cartTotal">0</span></div>
+        <div style="text-align:right; font-weight:bold; margin-top:10px;">Total: AED <span id="cartTotal">0</span></div>
         <button onclick="checkoutOrder()" style="background:#28a745; color:white;">Process Checkout</button>
     </div>
 
