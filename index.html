@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Terminal & Inventory</title>
+    <title>Shop Terminal & Inventory System</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; color: #333; }
         
@@ -12,11 +12,11 @@
         .navbar button { background-color: #444; color: white; border: none; padding: 10px 20px; margin: 0 5px; cursor: pointer; font-size: 16px; border-radius: 4px; }
         .navbar button.active, .navbar button:hover { background-color: #007bff; }
         
-        .container { max-width: 700px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .container { max-width: 750px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
         /* Tab Control */
         .tab-content { display: none; }
-        .tab-content.active { block; display: block; }
+        .tab-content.active { display: block; }
         
         /* Form Styles */
         .form-group { margin-bottom: 15px; }
@@ -32,6 +32,9 @@
         .row-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
         .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 15px; }
         .stock-input { width: 80px; display: inline-block; margin-right: 10px; }
+        
+        /* Scrollable Inventory List for large dataset */
+        #inventoryList { max-height: 500px; overflow-y: auto; padding-right: 5px; }
     </style>
 </head>
 <body>
@@ -100,7 +103,7 @@
 
     <div id="inventory" class="tab-content">
         <h2>Inventory Management</h2>
-        <p>Update stock levels below. Prices and stock are linked to specific brands, models, and years. Changes save locally.</p>
+        <p>Update stock levels below. Database tracks prices and stock individually per variant.</p>
         
         <div class="inventory-section" id="inventoryList">
             </div>
@@ -108,19 +111,7 @@
 
 </div>
 
-<script>
-    // 1. Vehicles Configuration Dictionary
-    const modelsByBrand = {
-        "Cadillac": ["CT5", "Escalade"],
-        "Chevrolet": ["Camaro", "Corvette"],
-        "GMC": ["Yukon", "Sierra"]
-    };
+<script src="script.js"></script>
 
-    // 2. Initial Unique Database Stock Data 
-    // Format: "Brand-Model-Year-PartName"
-    const defaultInventory = {
-        "Chevrolet-Camaro-2026-Brake Pads": { price: 1250, stock: 5 },
-        "Chevrolet-Camaro-2025-Oil Filter": { price: 120, stock: 10 },
-        "Chevrolet-Corvette-2026-Brake Pads": { price: 2400, stock: 2 },
-        "Cadillac-CT5-2026-Brake Pads": { price: 1400, stock: 4 },
-        "Cadillac-Escalade-2026-Brake Pads": { price: 190
+</body>
+</html>
