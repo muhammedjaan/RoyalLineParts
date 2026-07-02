@@ -6,42 +6,28 @@
     <style>
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
         .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .navbar { margin-bottom: 20px; display: flex; gap: 10px; }
-        .navbar button { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; background: #eee; flex: 1; }
-        .navbar button.active { background: #007bff; color: white; border: none; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         select, input, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
         .row-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #ddd; }
-        .control-box { display: flex; flex-direction: column; align-items: center; width: 80px; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="navbar">
-        <button id="btn-shop" class="active" onclick="switchTab('shop')">Checkout</button>
-        <button id="btn-inventory" onclick="switchTab('inventory')">Inventory</button>
-    </div>
-
     <div id="shop" class="tab-content active">
         <h2>Parts Checkout</h2>
-        <label>Brand</label> <select id="brand" onchange="handleBrandChange()"></select>
-        <label>Model</label> <select id="model" onchange="updateShopDropdown()"></select>
-        <label>Year</label> <select id="year" onchange="updateShopDropdown()"></select>
-        <label>Part</label> <select id="part"></select>
+        <select id="brand" onchange="handleBrandChange()"></select>
+        <select id="model" onchange="updateShopDropdown()"></select>
+        <select id="year" onchange="updateShopDropdown()"></select>
+        <select id="part"></select>
         <button onclick="addToCart()">Add to Order</button>
-        <div id="cartItems"></div>
         <button onclick="checkoutOrder()" style="background:#28a745; color:white; margin-top:10px;">Process Checkout</button>
     </div>
-
     <div id="inventory" class="tab-content">
         <h2>Inventory Management</h2>
-        <input type="text" id="searchInventory" placeholder="Search..." onkeyup="updateInventoryUI()">
         <div id="inventoryList"></div>
     </div>
 </div>
-
 <script src="script.js"></script>
 </body>
 </html>
