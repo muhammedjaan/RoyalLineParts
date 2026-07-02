@@ -8,17 +8,17 @@
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
         .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .navbar { margin-bottom: 20px; display: flex; gap: 10px; }
-        .navbar button { padding: 10px 20px; cursor: pointer; }
+        .navbar button { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; background: #eee; flex: 1; }
         .navbar button.active { background: #007bff; color: white; border: none; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .form-group { margin-bottom: 15px; }
         select, input, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
         
-        /* Fixed Layout */
-        .row-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #ddd; }
+        .row-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
         .controls-group { display: flex; gap: 15px; align-items: center; }
-        .control-box { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 80px; }
+        .control-box { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 90px; }
+        .control-box input { width: 100% !important; padding: 8px; }
         #inventoryList { max-height: 500px; overflow-y: auto; }
     </style>
 </head>
