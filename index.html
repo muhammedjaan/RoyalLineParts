@@ -3,38 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Terminal & Inventory System</title>
+    <title>Shop Terminal & Inventory</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; color: #333; }
-        
-        /* Navigation Menu */
         .navbar { background-color: #333; padding: 10px; text-align: center; }
-        .navbar button { background-color: #444; color: white; border: none; padding: 10px 20px; margin: 0 5px; cursor: pointer; font-size: 16px; border-radius: 4px; }
-        .navbar button.active, .navbar button:hover { background-color: #007bff; }
-        
+        .navbar button { background-color: #444; color: white; border: none; padding: 10px 20px; margin: 0 5px; cursor: pointer; border-radius: 4px; }
+        .navbar button.active { background-color: #007bff; }
         .container { max-width: 750px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        /* Tab Control */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
-        /* Form Styles */
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        select, input, button.action-btn { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        button.action-btn { background-color: #007bff; color: white; border: none; cursor: pointer; margin-top: 10px; }
-        button.action-btn:hover { background-color: #0056b3; }
-        button.success-btn { background-color: #28a745; color: white; border: none; padding: 10px; width: 100%; font-size: 16px; cursor: pointer; margin-top: 15px; border-radius: 4px; }
-        button.success-btn:hover { background-color: #218838; }
-        
-        /* Cart & Inventory Tables */
-        .cart-section, .inventory-section { margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
         .row-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
-        .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 15px; }
-        .stock-input { width: 80px; display: inline-block; margin-right: 10px; }
-        
-        /* Scrollable Inventory List for large dataset */
-        #inventoryList { max-height: 500px; overflow-y: auto; padding-right: 5px; }
+        #inventoryList { max-height: 400px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -45,73 +26,27 @@
 </div>
 
 <div class="container">
-    
     <div id="shop" class="tab-content active">
-        <h2>Parts Selection System</h2>
-        
+        <h2>Parts Checkout</h2>
         <div class="form-group">
-            <label for="brand">Vehicle Brand</label>
-            <select id="brand">
-                <option value="Cadillac">Cadillac</option>
-                <option value="Chevrolet">Chevrolet</option>
-                <option value="GMC">GMC</option>
-            </select>
+            <label>Brand</label> <select id="brand" onchange="handleBrandChange()"></select>
+            <label>Model</label> <select id="model" onchange="updateShopDropdown()"></select>
+            <label>Year</label> <select id="year" onchange="updateShopDropdown()"></select>
+            <label>Part</label> <select id="part"></select>
+            <button onclick="addToCart()">Add to Order</button>
         </div>
-
-        <div class="form-group">
-            <label for="model">Vehicle Model</label>
-            <select id="model">
-                </select>
-        </div>
-
-        <div class="form-group">
-            <label for="year">Model Year</label>
-            <select id="year">
-                <option value="2026">2026</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-                <option value="2021">2021</option>
-                <option value="2020">2020</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="part">Required Part</label>
-            <select id="part">
-                </select>
-        </div>
-
-        <div class="form-group">
-            <label for="condition">Part Condition</label>
-            <select id="condition">
-                <option value="New">OEM New</option>
-                <option value="Used">OEM Used</option>
-            </select>
-        </div>
-
-        <button class="action-btn" onclick="addToCart()">Add Part to Work Order</button>
-
-        <div class="cart-section">
-            <h3>Current Repair Order Cart</h3>
-            <div id="cartItems"></div>
-            <div class="total">Total: AED <span id="cartTotal">0</span></div>
-            <button class="success-btn" onclick="checkoutOrder()">Process Checkout</button>
-        </div>
+        <div id="cartItems"></div>
+        <div style="text-align:right; font-weight:bold;">Total: AED <span id="cartTotal">0</span></div>
+        <button onclick="checkoutOrder()" style="background:#28a745; color:white;">Process Checkout</button>
     </div>
 
     <div id="inventory" class="tab-content">
         <h2>Inventory Management</h2>
-        <p>Update stock levels below. Database tracks prices and stock individually per variant.</p>
-        
-        <div class="inventory-section" id="inventoryList">
-            </div>
+        <input type="text" id="searchInventory" placeholder="Search parts..." onkeyup="updateInventoryUI()">
+        <div id="inventoryList"></div>
     </div>
-
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
