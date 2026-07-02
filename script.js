@@ -16,73 +16,55 @@ function handleBrandChange() {
     const brand = document.getElementById('brand').value;
     const model = document.getElementById('model');
     model.innerHTML = '';
-    modelsByBrand[brand].forEach(m => {
-        let opt = document.createElement('option');
-        opt.value = m; opt.innerText = m;
-        model.appendChild(opt);
+    (modelsByBrand[brand] || []).forEach(m => {
+        model.innerHTML += `<option value="${m}">${m}</option>`;
     });
     updateShopDropdown();
 }
 
 function updateShopDropdown() {
-    const brand = document.getElementById('brand').value;
-    const model = document.getElementById('model').value;
-    const year = document.getElementById('year').value;
+    const b = document.getElementById('brand').value, m = document.getElementById('model').value, y = document.getElementById('year').value;
     const partSelect = document.getElementById('part');
     partSelect.innerHTML = '';
     for(let key in inventory) {
-        if(key.includes(`${brand}-${model}-${year}`)) {
-            let name = key.split('-')[3];
-            partSelect.innerHTML += `<option value="${key}">${name} (AED ${inventory[key].price})</option>`;
+        if(key.includes(`${b}-${m}-${y}`)) {
+            partSelect.innerHTML += `<option value="${key}">${key.split('-')[3]} (Stock: ${inventory[key].stock})</option>`;
         }
     }
+}
+
+function addToCart() {
+    const key = document.getElementById('part').value;
+    if(key && inventory[key].stock > 0) {
+        inventory[key].stock--;
+        localStorage.setItem('shopInventory', JSON.stringify(inventory));
+        updateShopDropdown();
+        alert("Added to order!");
+    } else { alert("Out of stock or none selected."); }
 }
 
 function updateInventoryUI() {
     const list = document.getElementById('inventoryList');
-    const term = document.getElementById('searchInventory').value.toLowerCase();
     list.innerHTML = '';
     for(let key in inventory) {
-        if(key.toLowerCase().includes(term)) {
-            list.innerHTML += `
-            <div class="row-item">
-                <div style="width: 40%; font-weight: bold;">${key.replace(/-/g, ' ')}</div>
-                <div class="controls-group">
-                    <div class="control-box">
-                        <small>AED</small>
-                        <input type="number" id="p-${key}" value="${inventory[key].price}">
-                        <button onclick="updatePrice('${key}')">Set</button>
-                    </div>
-                    <div class="control-box">
-                        <small>Stock: ${inventory[key].stock}</small>
-                        <input type="number" id="s-${key}" placeholder="Qty">
-                        <button onclick="addStock('${key}')">+</button>
-                    </div>
-                </div>
-            </div>`;
-        }
+        list.innerHTML += `<div class="row-item">
+            <div>${key.replace(/-/g, ' ')}</div>
+            <div class="control-box">Stock: ${inventory[key].stock}
+            <button onclick="addStock('${key}')">+</button></div>
+        </div>`;
     }
 }
 
-function updatePrice(key) {
-    inventory[key].price = parseFloat(document.getElementById('p-' + key).value);
+function addStock(key) {
+    inventory[key].stock++;
     localStorage.setItem('shopInventory', JSON.stringify(inventory));
     updateInventoryUI();
     updateShopDropdown();
 }
 
-function addStock(key) {
-    let qty = parseInt(document.getElementById('s-' + key).value);
-    if(!isNaN(qty)) {
-        inventory[key].stock += qty;
-        localStorage.setItem('shopInventory', JSON.stringify(inventory));
-        updateInventoryUI();
-    }
-}
-
 window.onload = () => {
     const b = document.getElementById('brand');
     Object.keys(modelsByBrand).forEach(br => b.innerHTML += `<option value="${br}">${br}</option>`);
-    ['2026','2025','2024','2023','2022','2021','2020'].forEach(y => document.getElementById('year').innerHTML += `<option value="${y}">${y}</option>`);
+    ['2026','2025','2024'].forEach(y => document.getElementById('year').innerHTML += `<option value="${y}">${y}</option>`);
     handleBrandChange();
 };
