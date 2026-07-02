@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop Terminal</title>
     <style>
         body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
@@ -12,14 +11,9 @@
         .navbar button.active { background: #007bff; color: white; border: none; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .form-group { margin-bottom: 15px; }
         select, input, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
-        
-        .row-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
-        .controls-group { display: flex; gap: 15px; align-items: center; }
-        .control-box { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 90px; }
-        .control-box input { width: 100% !important; padding: 8px; }
-        #inventoryList { max-height: 500px; overflow-y: auto; }
+        .row-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #ddd; }
+        .control-box { display: flex; flex-direction: column; align-items: center; width: 80px; }
     </style>
 </head>
 <body>
@@ -32,21 +26,18 @@
 
     <div id="shop" class="tab-content active">
         <h2>Parts Checkout</h2>
-        <div class="form-group">
-            <label>Brand</label> <select id="brand" onchange="handleBrandChange()"></select>
-            <label>Model</label> <select id="model" onchange="updateShopDropdown()"></select>
-            <label>Year</label> <select id="year" onchange="updateShopDropdown()"></select>
-            <label>Part</label> <select id="part"></select>
-            <button onclick="addToCart()">Add to Order</button>
-        </div>
+        <label>Brand</label> <select id="brand" onchange="handleBrandChange()"></select>
+        <label>Model</label> <select id="model" onchange="updateShopDropdown()"></select>
+        <label>Year</label> <select id="year" onchange="updateShopDropdown()"></select>
+        <label>Part</label> <select id="part"></select>
+        <button onclick="addToCart()">Add to Order</button>
         <div id="cartItems"></div>
-        <div style="text-align:right; font-weight:bold; margin-top:10px;">Total: AED <span id="cartTotal">0</span></div>
-        <button onclick="checkoutOrder()" style="background:#28a745; color:white;">Process Checkout</button>
+        <button onclick="checkoutOrder()" style="background:#28a745; color:white; margin-top:10px;">Process Checkout</button>
     </div>
 
     <div id="inventory" class="tab-content">
         <h2>Inventory Management</h2>
-        <input type="text" id="searchInventory" placeholder="Search parts..." onkeyup="updateInventoryUI()">
+        <input type="text" id="searchInventory" placeholder="Search..." onkeyup="updateInventoryUI()">
         <div id="inventoryList"></div>
     </div>
 </div>
