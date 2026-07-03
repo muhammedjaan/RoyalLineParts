@@ -4,13 +4,13 @@
 
 // 1. Initialize Cloud Database Connection
 const firebaseConfig = {
-    apiKey: "AIzaSyBunX1zU7704yYAtvehXZzeuX-AxV2v7wo",
-    authDomain: "royallinepartsdatabase.firebaseapp.com",
-    databaseURL: "https://royallinepartsdatabase-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "royallinepartsdatabase",
-    storageBucket: "royallinepartsdatabase.firebasestorage.app",
-    messagingSenderId: "977529905889",
-    appId: "1:977529905889:web:7572790a140538aa774da0"
+  apiKey: "AIzaSyBunX1zU77O4yYAtvehXZzeuX-AxV2v7wo",
+  authDomain: "royallinepartsdatabase.firebaseapp.com",
+  databaseURL: "https://royallinepartsdatabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "royallinepartsdatabase",
+  storageBucket: "royallinepartsdatabase.firebasestorage.app",
+  messagingSenderId: "977529905889",
+  appId: "1:977529905889:web:7572790a140538aa774da0"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -100,6 +100,7 @@ function refreshShopDropdowns() {
     updateAvailableParts();
 }
 
+// 7. Dynamic Select Helpers
 function populateSelectElement(elementId, dataSet) {
     const select = document.getElementById(elementId);
     const currentValue = select.value; 
@@ -150,7 +151,7 @@ function updateAvailableParts() {
     }
 }
 
-// 7. Transaction Logics
+// 8. Transaction Logics
 function addToCart() {
     const partSelect = document.getElementById('part');
     if (partSelect.options.length === 0 || partSelect.options[partSelect.selectedIndex].disabled) {
@@ -198,7 +199,7 @@ function checkoutOrder() {
     renderCartUI();
 }
 
-// 8. Management Matrix Engine
+// 9. Management Matrix Engine
 function updateInventoryUI() {
     const container = document.getElementById('inventoryList');
     if (!container) return;
@@ -250,7 +251,7 @@ function addStock(dbKey) {
     pushStateToCloud();
 }
 
-// 9. Core Runtime Hook (Multi-Tenant Auth Engine)
+// 10. Core Runtime Hook (Multi-Tenant Auth Engine)
 document.addEventListener('DOMContentLoaded', () => {
     const loginScreen = document.getElementById('loginScreen');
     const mainApp = document.getElementById('mainApp');
