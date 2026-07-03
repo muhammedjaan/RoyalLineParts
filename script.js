@@ -1,13 +1,27 @@
 /**
- * OEM Parts Management System - Dynamic Build
+ * OEM Parts Management System - Live Cloud Synced Edition
  */
 
-// 1. Core State (Starts completely empty)
-let inventory = JSON.parse(localStorage.getItem('aftersalesInventory')) || {};
+// 1. Initialize Cloud Database Connection
+const firebaseConfig = {
+  apiKey: "AIzaSyBunX1zU7704yYAtvehXZzeuX-AxV2v7wo",
+  authDomain: "royallinepartsdatabase.firebaseapp.com",
+  databaseURL: "https://royallinepartsdatabase-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "royallinepartsdatabase",
+  storageBucket: "royallinepartsdatabase.firebasestorage.app",
+  messagingSenderId: "977529905889",
+  appId: "1:977529905889:web:7572790a140538aa774da0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// 2. Local App Memory State
+let inventory = {};
 let cart = [];
 let totalCost = 0;
 
-// 2. Database Helper Utilities
+// 3. Database Utility Handlers
 function parseDbKey(dbKey) {
     const segments = dbKey.split('|');
     return {
@@ -19,11 +33,16 @@ function parseDbKey(dbKey) {
     };
 }
 
-function saveState() {
-    localStorage.setItem('aftersalesInventory', JSON.stringify(inventory));
+function safeFirebaseKey(keyString) {
+    // Firebase paths cannot contain dots, hashes, dollars, slashes, or brackets
+    return keyString.replace(/[\.\#\$\[\]]/g, '-');
 }
 
-// 3. Navigation View Controller
+function pushStateToCloud() {
+    db.ref('aftersalesInventory').set(inventory);
+}
+
+// 4. Interface View Controller
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(view => view.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -35,7 +54,7 @@ function switchTab(tabId) {
     updateInventoryUI();
 }
 
-// 4. Admin Feature: Add New Component
+// 5. Registration: Add Components
 function addNewComponent() {
     const brand = document.getElementById('newBrand').value.trim();
     const model = document.getElementById('newModel').value.trim();
@@ -50,19 +69,19 @@ function addNewComponent() {
         return;
     }
 
-    // Creating the strict database key
-    const newDbKey = `${brand}|${model}|${year}|${condition}|${partName}`;
+    const rawKey = `${brand}|${model}|${year}|${condition}|${partName}`;
+    const newDbKey = safeFirebaseKey(rawKey);
 
     if (inventory[newDbKey]) {
-        alert("This exact component configuration already exists in the registry!");
+        alert("This exact component configuration already exists in the cloud registry!");
         return;
     }
 
-    // Add to database
+    // Add to local state object, then push the change upward
     inventory[newDbKey] = { price: price, stock: stock };
-    saveState();
+    pushStateToCloud();
 
-    // Clear inputs
+    // Reset layout fields
     document.getElementById('newBrand').value = '';
     document.getElementById('newModel').value = '';
     document.getElementById('newYear').value = '';
@@ -70,16 +89,13 @@ function addNewComponent() {
     document.getElementById('newPrice').value = '';
     document.getElementById('newStock').value = '';
 
-    alert(`Success: ${brand} ${model} ${partName} added to registry!`);
-    updateInventoryUI();
-    refreshShopDropdowns();
+    alert(`Success: ${brand} ${partName} added to live cloud engine!`);
 }
 
-// 5. Dynamic Shop Populators
+// 6. Dynamic Select Builders
 function refreshShopDropdowns() {
     const brands = new Set(), models = new Set(), years = new Set(), conditions = new Set();
 
-    // Extract unique values from whatever is currently in the database
     for (const key of Object.keys(inventory)) {
         const item = parseDbKey(key);
         brands.add(item.brand);
@@ -98,13 +114,12 @@ function refreshShopDropdowns() {
 
 function populateSelectElement(elementId, dataSet) {
     const select = document.getElementById(elementId);
-    // Keep the currently selected value if it exists, so the UI doesn't jump
     const currentValue = select.value; 
     
     select.innerHTML = '';
     
     if (dataSet.size === 0) {
-        select.innerHTML = '<option value="">-- Empty Database --</option>';
+        select.innerHTML = '<option value="">-- Empty Registry --</option>';
         return;
     }
 
@@ -130,7 +145,6 @@ function updateAvailableParts() {
     for (const [dbKey, data] of Object.entries(inventory)) {
         const item = parseDbKey(dbKey);
         
-        // Only show parts that perfectly match all 4 dropdowns
         if (item.brand === currentBrand && item.model === currentModel && 
             item.year === currentYear && item.condition === currentCondition) {
             
@@ -151,13 +165,13 @@ function updateAvailableParts() {
 
     if (!partsFound) {
         const option = document.createElement('option');
-        option.innerText = "No parts registered for this specific configuration";
+        option.innerText = "No parts registered for this configuration";
         option.disabled = true;
         partSelect.appendChild(option);
     }
 }
 
-// 6. Checkout / Transaction Logic
+// 7. Transaction Logics
 function addToCart() {
     const partSelect = document.getElementById('part');
     if (partSelect.options.length === 0 || partSelect.options[partSelect.selectedIndex].disabled) {
@@ -171,7 +185,7 @@ function addToCart() {
 
     const countInCart = cart.filter(cItem => cItem.dbKey === dbItemKey).length;
     if (countInCart >= inventory[dbItemKey].stock) {
-        alert("Cannot add more items than physically available in stock.");
+        alert("Cannot append more items than physically remaining in workshop stock.");
         return;
     }
 
@@ -210,19 +224,21 @@ function checkoutOrder() {
     if (cart.length === 0) return alert("The order sheet is empty.");
 
     cart.forEach(item => { if (inventory[item.dbKey].stock > 0) inventory[item.dbKey].stock -= 1; });
-    saveState();
+    
+    // Commit the stock decreases directly to the cloud backend
+    pushStateToCloud();
     
     alert(`Transaction Invoiced! Total: AED ${totalCost}`);
     cart = [];
     totalCost = 0;
     renderCartUI();
-    updateAvailableParts();
-    updateInventoryUI();
 }
 
-// 7. Inventory UI Render
+// 8. Management Matrix Engine
 function updateInventoryUI() {
     const container = document.getElementById('inventoryList');
+    if (!container) return;
+    
     const filter = document.getElementById('inventorySearch').value.toLowerCase();
     container.innerHTML = '';
 
@@ -258,33 +274,39 @@ function updateInventoryUI() {
     }
 }
 
-// Inventory Adjustments
 function updatePrice(dbKey) {
     const newPrice = parseInt(document.getElementById(`price-${dbKey}`).value, 10);
     if (isNaN(newPrice) || newPrice < 0) return alert("Invalid price.");
     inventory[dbKey].price = newPrice;
-    saveState(); updateInventoryUI(); updateAvailableParts();
+    pushStateToCloud();
 }
 
 function addStock(dbKey) {
     const delta = parseInt(document.getElementById(`stock-${dbKey}`).value, 10);
     if (isNaN(delta) || delta === 0) return alert("Invalid quantity.");
     inventory[dbKey].stock += delta;
-    saveState(); updateInventoryUI(); updateAvailableParts();
+    pushStateToCloud();
 }
 
-// 8. Initializers
+// 9. Core Runtime Hook (Real-Time Synchronizer)
 document.addEventListener('DOMContentLoaded', () => {
-    // Add Item button
-    document.getElementById('addNewPartBtn').addEventListener('click', addNewComponent);
+    
+    // Establishing the reactive live stream from Firebase
+    db.ref('aftersalesInventory').on('value', (snapshot) => {
+        inventory = snapshot.val() || {};
+        
+        // This causes the interface to automatically redraw if ANY device pushes changes
+        refreshShopDropdowns();
+        updateInventoryUI();
+    });
 
-    // Cascading Shop Selectors
+    // Control Form Bindings
+    document.getElementById('addNewPartBtn').addEventListener('click', addNewComponent);
     document.getElementById('brand').addEventListener('change', updateAvailableParts);
     document.getElementById('model').addEventListener('change', updateAvailableParts);
     document.getElementById('year').addEventListener('change', updateAvailableParts);
     document.getElementById('condition').addEventListener('change', updateAvailableParts);
     
-    // UI Events
     document.getElementById('addToCartBtn').addEventListener('click', addToCart);
     document.getElementById('checkoutBtn').addEventListener('click', checkoutOrder);
     document.getElementById('inventorySearch').addEventListener('input', updateInventoryUI);
@@ -304,8 +326,4 @@ document.addEventListener('DOMContentLoaded', () => {
         if (action === 'price') updatePrice(targetKey);
         if (action === 'stock') addStock(targetKey);
     });
-
-    // Boot up
-    refreshShopDropdowns();
-    updateInventoryUI();
 });
