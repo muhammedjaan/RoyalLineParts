@@ -54,11 +54,17 @@ function switchTab(tabId) {
 
 // 5. Registration: Add Components
 function addNewComponent() {
-    const brand = document.getElementById('newBrand').value.trim();
-    const model = document.getElementById('newModel').value.trim();
+    // ENFORCED UPPERCASE ON TEXT FIELDS
+    const brand = document.getElementById('newBrand').value.trim().toUpperCase();
+    const model = document.getElementById('newModel').value.trim().toUpperCase();
     const year = document.getElementById('newYear').value.trim();
-    const condition = document.getElementById('newCondition').value;
-    const partName = document.getElementById('newPartName').value.trim();
+    const condition = document.getElementById('newCondition').value.toUpperCase();
+    const partName = document.getElementById('newPartName').value.trim().toUpperCase();
+    
+    // NEW: Part Number and Internal Cost (Safeguarded in case HTML isn't updated yet)
+    const partNumber = document.getElementById('newPartNumber') ? document.getElementById('newPartNumber').value.trim().toUpperCase() : "N/A";
+    const cost = document.getElementById('newCost') ? parseInt(document.getElementById('newCost').value, 10) : 0; 
+    
     const price = parseInt(document.getElementById('newPrice').value, 10);
     const stock = parseInt(document.getElementById('newStock').value, 10);
 
@@ -73,7 +79,8 @@ function addNewComponent() {
         return alert("This exact component configuration already exists in the cloud registry!");
     }
 
-    inventory[newDbKey] = { price: price, stock: stock };
+    // NEW: Saving partNumber and hidden cost to the database object
+    inventory[newDbKey] = { price: price, cost: cost, stock: stock, partNumber: partNumber };
     pushStateToCloud();
 
     document.getElementById('newBrand').value = '';
@@ -82,6 +89,9 @@ function addNewComponent() {
     document.getElementById('newPartName').value = '';
     document.getElementById('newPrice').value = '';
     document.getElementById('newStock').value = '';
+    if(document.getElementById('newPartNumber')) document.getElementById('newPartNumber').value = '';
+    if(document.getElementById('newCost')) document.getElementById('newCost').value = '';
+    
     alert(`Success: ${brand} ${partName} added to live cloud engine!`);
 }
 
@@ -134,10 +144,14 @@ function updateAvailableParts() {
             const option = document.createElement('option');
             option.value = dbKey; 
             option.setAttribute('data-price', data.price);
+            
+            // Appends Part Number to the dropdown view if it exists
+            const pnDisplay = data.partNumber && data.partNumber !== "N/A" ? ` [PN: ${data.partNumber}]` : "";
+            
             if (data.stock > 0) {
-                option.innerText = `${item.partName} (AED ${data.price}) - Stock: ${data.stock}`;
+                option.innerText = `${item.partName}${pnDisplay} (AED ${data.price}) - Stock: ${data.stock}`;
             } else {
-                option.innerText = `${item.partName} (OUT OF STOCK)`;
+                option.innerText = `${item.partName}${pnDisplay} (OUT OF STOCK)`;
                 option.disabled = true;
             }
             partSelect.appendChild(option);
@@ -211,14 +225,18 @@ function updateInventoryUI() {
         const matchString = `${item.brand} ${item.model} ${item.year} ${item.condition} ${item.partName}`.toLowerCase();
         if (!matchString.includes(filter)) continue;
         
+        // Ensure Part Number shows up in the management matrix
+        const pnDisplay = data.partNumber && data.partNumber !== "N/A" ? ` [PN: ${data.partNumber}]` : "";
+        
         const div = document.createElement('div');
         div.className = 'row-item';
+        // Note: Internal Cost is purposefully excluded from the UI output below
         div.innerHTML = `
             <div style="flex: 1;">
-                <strong>${item.brand} ${item.model} (${item.year}) - ${item.partName}</strong>
+                <strong>${item.brand} ${item.model} (${item.year}) - ${item.partName}${pnDisplay}</strong>
                 <div style="font-size: 13px; margin-top: 6px; color: #666;">
                     Condition: <span style="font-weight:bold; color:var(--dark);">${item.condition}</span> | 
-                    Price: <span style="font-weight:bold; color:var(--primary);">AED ${data.price}</span> | 
+                    Selling Price: <span style="font-weight:bold; color:var(--primary);">AED ${data.price}</span> | 
                     Stock: <strong>${data.stock}</strong>
                 </div>
             </div>
@@ -230,6 +248,9 @@ function updateInventoryUI() {
                 <div>
                     <input type="number" id="stock-${dbKey}" class="stock-input" placeholder="Qty">
                     <button class="action-btn btn-stock" data-update="stock" data-key="${dbKey}">Stock</button>
+                </div>
+                <div>
+                    <button class="action-btn btn-delete" data-update="delete" data-key="${dbKey}" style="background-color: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                 </div>
             </div>
         `;
@@ -249,6 +270,14 @@ function addStock(dbKey) {
     if (isNaN(delta) || delta === 0) return alert("Invalid quantity.");
     inventory[dbKey].stock += delta;
     pushStateToCloud();
+}
+
+// NEW: Delete Part Function
+function deletePart(dbKey) {
+    if (confirm("WARNING: Are you sure you want to permanently delete this part from the registry?")) {
+        delete inventory[dbKey]; // Removes item from local object
+        pushStateToCloud();      // Pushes deletion to Firebase
+    }
 }
 
 // 10. Core Runtime Hook (Multi-Tenant Auth Engine)
@@ -323,5 +352,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetKey = e.target.dataset.key;
         if (action === 'price') updatePrice(targetKey);
         if (action === 'stock') addStock(targetKey);
+        if (action === 'delete') deletePart(targetKey); // NEW BINDING
     });
 });
