@@ -87,16 +87,46 @@
         .stock-input { width: 90px; padding: 6px 8px; font-size: 14px; display: inline-block;}
         #cartItems { max-height: 320px; overflow-y: auto; margin-bottom: 15px; }
         .total-box { font-size: 19px; font-weight: 700; text-align: right; margin-bottom: 15px; }
+        
+        /* Login Screen Specific Styles */
+        #loginScreen {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        #loginScreen h2 { margin-top: 0; margin-bottom: 25px; color: var(--dark); }
+        #loginScreen input { margin-bottom: 15px; }
+        #loginError { color: var(--danger); font-size: 14px; margin-top: 15px; font-weight: 600; display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="loginScreen">
+    <h2>System Gateway Login</h2>
+    <div class="form-group">
+        <input type="email" id="loginEmail" placeholder="Operator Email Address">
+    </div>
+    <div class="form-group">
+        <input type="password" id="loginPassword" placeholder="Security Access Password">
+    </div>
+    <button id="loginBtn" class="btn">Authenticate Session</button>
+    <p id="loginError"></p>
+</div>
+
+<div class="container" id="mainApp" style="display: none;">
     <header>
         <h1>OEM Workshop Parts Desk</h1>
-        <div class="tabs">
-            <button id="btn-shop" class="tab-btn active" data-tab="shop">Sales Terminal</button>
-            <button id="btn-inventory" class="tab-btn" data-tab="inventory">Inventory Manager</button>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <div class="tabs">
+                <button id="btn-shop" class="tab-btn active" data-tab="shop">Sales Terminal</button>
+                <button id="btn-inventory" class="tab-btn" data-tab="inventory">Inventory Manager</button>
+            </div>
+            <button id="logoutBtn" class="action-btn" style="background-color: var(--danger); padding: 10px 16px; border-radius: 6px;">Term Session</button>
         </div>
     </header>
 
@@ -106,19 +136,19 @@
             <div class="input-grid">
                 <div class="form-group">
                     <label>Brand</label>
-                    <select id="brand"><option value="">Loading database...</option></select>
+                    <select id="brand"><option value="">Loading central records...</option></select>
                 </div>
                 <div class="form-group">
                     <label>Model</label>
-                    <select id="model"><option value="">Loading database...</option></select>
+                    <select id="model"><option value="">Loading central records...</option></select>
                 </div>
                 <div class="form-group">
                     <label>Production Year</label>
-                    <select id="year"><option value="">Loading database...</option></select>
+                    <select id="year"><option value="">Loading central records...</option></select>
                 </div>
                 <div class="form-group">
                     <label>Condition Classification</label>
-                    <select id="condition"><option value="">Loading database...</option></select>
+                    <select id="condition"><option value="">Loading central records...</option></select>
                 </div>
             </div>
 
@@ -143,8 +173,8 @@
         <div class="card">
             <h2>Register New Master Component</h2>
             <div class="input-grid">
-                <input type="text" id="newBrand" placeholder="Brand (e.g., Cadillac)">
-                <input type="text" id="newModel" placeholder="Model (e.g., CT5)">
+                <input type="text" id="newBrand" placeholder="Brand (e.g., GMC)">
+                <input type="text" id="newModel" placeholder="Model (e.g., Yukon)">
                 <input type="number" id="newYear" placeholder="Year (e.g., 2026)">
                 <select id="newCondition">
                     <option value="OEM Factory New">OEM Factory New</option>
@@ -172,6 +202,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script src="script.js"></script>
 </body>
