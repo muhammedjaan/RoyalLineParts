@@ -154,7 +154,7 @@
     <div id="loginScreen">
         <h2>System Access</h2>
         <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Secure Database Gateway</p>
-        <input type="email" id="loginEmail" placeholder="Tenant Email (e.g., jaan@rlpdb.com)">
+        <input type="email" id="loginEmail" placeholder="Tenant Email">
         <input type="password" id="loginPassword" placeholder="Password">
         <button id="loginBtn" style="width: 100%; padding: 12px; font-size: 16px;">Authenticate</button>
         <div id="loginError"></div>
@@ -168,33 +168,33 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" id="btn-tab-register" data-tab="tab-register">1. Component Registration</button>
-            <button class="tab-btn" id="btn-tab-shop" data-tab="tab-shop">2. Storefront & Checkout</button>
-            <button class="tab-btn" id="btn-tab-manage" data-tab="tab-manage">3. Management Matrix</button>
+            <button class="tab-btn active" id="btn-tab-register" data-tab="tab-register">1. Registration</button>
+            <button class="tab-btn" id="btn-tab-shop" data-tab="tab-shop">2. Storefront</button>
+            <button class="tab-btn" id="btn-tab-manage" data-tab="tab-manage">3. Management</button>
         </div>
 
         <div id="tab-register" class="tab-content active">
             <h3>Add New Component to Registry</h3>
             <div class="form-grid">
-                <input type="text" id="newBrand" placeholder="Brand (e.g., Cadillac)">
-                <input type="text" id="newModel" placeholder="Model (e.g., Escalade)">
-                <input type="text" id="newYear" placeholder="Year (e.g., 2024)">
+                <input type="text" id="newBrand" placeholder="Brand">
+                <input type="text" id="newModel" placeholder="Model">
+                <input type="text" id="newYear" placeholder="Year">
                 <select id="newCondition">
                     <option value="NEW">New (OEM)</option>
                     <option value="USED">Used (Inspected)</option>
                     <option value="REFURBISHED">Refurbished</option>
                 </select>
-                <input type="text" id="newPartName" placeholder="Component Name (e.g., Alternator)">
-                <input type="text" id="newPartNumber" placeholder="Part Number (Optional)">
-                <input type="number" id="newCost" placeholder="Internal Cost in AED (Hidden)">
-                <input type="number" id="newPrice" placeholder="Selling Price in AED (Public)">
-                <input type="number" id="newStock" placeholder="Initial Stock Quantity">
+                <input type="text" id="newPartName" placeholder="Component Name">
+                <input type="text" id="newPartNumber" placeholder="Part Number">
+                <input type="number" id="newCost" placeholder="Internal Cost (AED)">
+                <input type="number" id="newPrice" placeholder="Selling Price (AED)">
+                <input type="number" id="newStock" placeholder="Stock Quantity">
             </div>
             <button id="addNewPartBtn" style="width: 100%; font-size: 16px; padding: 15px;">Deploy Component to Cloud</button>
         </div>
 
         <div id="tab-shop" class="tab-content">
-            <h3>Customer View & Cart</h3>
+            <h3>Customer View & Checkout</h3>
             <div class="form-grid">
                 <select id="brand"><option value="">-- Brand --</option></select>
                 <select id="model"><option value="">-- Model --</option></select>
@@ -203,15 +203,14 @@
             </div>
             
             <div style="margin-top: 15px;">
-                <label style="font-weight: bold; margin-bottom: 5px; display: block;">Available Parts in Stock:</label>
+                <label style="font-weight: bold; margin-bottom: 5px; display: block;">Available Parts:</label>
                 <select id="part" style="margin-bottom: 15px; padding: 12px;"></select>
                 <button id="addToCartBtn">Add to Order Sheet</button>
             </div>
 
             <div class="cart-panel">
                 <h3 style="margin-top: 0;">Active Order Sheet</h3>
-                <div id="cartItems">
-                    </div>
+                <div id="cartItems"></div>
                 <div style="margin-top: 20px; font-size: 18px; font-weight: bold; text-align: right;">
                     Total Invoice: AED <span id="cartTotal">0</span>
                 </div>
@@ -222,8 +221,7 @@
         <div id="tab-manage" class="tab-content">
             <h3>Live Inventory Matrix</h3>
             <input type="text" id="inventorySearch" placeholder="Search by brand, model, or part name..." style="margin-bottom: 20px; padding: 12px;">
-            <div id="inventoryList">
-                </div>
+            <div id="inventoryList"></div>
         </div>
 
     </div>
@@ -231,7 +229,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
     <script src="script.js"></script>
 </body>
 </html>
