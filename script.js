@@ -61,7 +61,7 @@ function addNewComponent() {
     const condition = document.getElementById('newCondition').value.toUpperCase();
     const partName = document.getElementById('newPartName').value.trim().toUpperCase();
     
-    // NEW: Part Number and Internal Cost (Safeguarded in case HTML isn't updated yet)
+    // Part Number and Internal Cost
     const partNumber = document.getElementById('newPartNumber') ? document.getElementById('newPartNumber').value.trim().toUpperCase() : "N/A";
     const cost = document.getElementById('newCost') ? parseInt(document.getElementById('newCost').value, 10) : 0; 
     
@@ -79,7 +79,7 @@ function addNewComponent() {
         return alert("This exact component configuration already exists in the cloud registry!");
     }
 
-    // NEW: Saving partNumber and hidden cost to the database object
+    // Saving partNumber and cost to the database object
     inventory[newDbKey] = { price: price, cost: cost, stock: stock, partNumber: partNumber };
     pushStateToCloud();
 
@@ -230,12 +230,14 @@ function updateInventoryUI() {
         
         const div = document.createElement('div');
         div.className = 'row-item';
-        // Note: Internal Cost is purposefully excluded from the UI output below
+        
+        // UPGRADED: Added Internal Cost to the display alongside Selling Price
         div.innerHTML = `
             <div style="flex: 1;">
                 <strong>${item.brand} ${item.model} (${item.year}) - ${item.partName}${pnDisplay}</strong>
                 <div style="font-size: 13px; margin-top: 6px; color: #666;">
                     Condition: <span style="font-weight:bold; color:var(--dark);">${item.condition}</span> | 
+                    Internal Cost: <span style="font-weight:bold; color:#d97706;">AED ${data.cost || 0}</span> | 
                     Selling Price: <span style="font-weight:bold; color:var(--primary);">AED ${data.price}</span> | 
                     Stock: <strong>${data.stock}</strong>
                 </div>
@@ -272,7 +274,7 @@ function addStock(dbKey) {
     pushStateToCloud();
 }
 
-// NEW: Delete Part Function
+// Delete Part Function
 function deletePart(dbKey) {
     if (confirm("WARNING: Are you sure you want to permanently delete this part from the registry?")) {
         delete inventory[dbKey]; // Removes item from local object
@@ -352,6 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetKey = e.target.dataset.key;
         if (action === 'price') updatePrice(targetKey);
         if (action === 'stock') addStock(targetKey);
-        if (action === 'delete') deletePart(targetKey); // NEW BINDING
+        if (action === 'delete') deletePart(targetKey); 
     });
 });
