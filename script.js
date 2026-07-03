@@ -1,8 +1,8 @@
 /**
- * OEM Parts Management System - Live Cloud Synced Edition
+ * OEM Parts Management System - Secure Authenticated Edition
  */
 
-// 1. Initialize Cloud Database Connection
+// 1. Initialize Cloud Database & Identity Infrastructure Connection
 const firebaseConfig = {
   apiKey: "AIzaSyBunX1zU7704yYAtvehXZzeuX-AxV2v7wo",
   authDomain: "royallinepartsdatabase.firebaseapp.com",
@@ -15,6 +15,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const auth = firebase.auth();
 
 // 2. Local App Memory State
 let inventory = {};
@@ -34,7 +35,6 @@ function parseDbKey(dbKey) {
 }
 
 function safeFirebaseKey(keyString) {
-    // Firebase paths cannot contain dots, hashes, dollars, slashes, or brackets
     return keyString.replace(/[\.\#\$\[\]]/g, '-');
 }
 
@@ -77,11 +77,9 @@ function addNewComponent() {
         return;
     }
 
-    // Add to local state object, then push the change upward
     inventory[newDbKey] = { price: price, stock: stock };
     pushStateToCloud();
 
-    // Reset layout fields
     document.getElementById('newBrand').value = '';
     document.getElementById('newModel').value = '';
     document.getElementById('newYear').value = '';
@@ -115,7 +113,6 @@ function refreshShopDropdowns() {
 function populateSelectElement(elementId, dataSet) {
     const select = document.getElementById(elementId);
     const currentValue = select.value; 
-    
     select.innerHTML = '';
     
     if (dataSet.size === 0) {
@@ -224,8 +221,6 @@ function checkoutOrder() {
     if (cart.length === 0) return alert("The order sheet is empty.");
 
     cart.forEach(item => { if (inventory[item.dbKey].stock > 0) inventory[item.dbKey].stock -= 1; });
-    
-    // Commit the stock decreases directly to the cloud backend
     pushStateToCloud();
     
     alert(`Transaction Invoiced! Total: AED ${totalCost}`);
@@ -288,19 +283,67 @@ function addStock(dbKey) {
     pushStateToCloud();
 }
 
-// 9. Core Runtime Hook (Real-Time Synchronizer)
+// 9. Core Runtime Engine Configuration
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Establishing the reactive live stream from Firebase
-    db.ref('aftersalesInventory').on('value', (snapshot) => {
-        inventory = snapshot.val() || {};
-        
-        // This causes the interface to automatically redraw if ANY device pushes changes
-        refreshShopDropdowns();
-        updateInventoryUI();
+    const loginScreen = document.getElementById('loginScreen');
+    const mainApp = document.getElementById('mainApp');
+    const loginError = document.getElementById('loginError');
+
+    // Authentication Reactive Event Sync
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // Authorized Login Session Found
+            loginScreen.style.display = 'none';
+            mainApp.style.display = 'block';
+            loginError.style.display = 'none';
+            
+            // Connect Database Stream
+            db.ref('aftersalesInventory').on('value', (snapshot) => {
+                inventory = snapshot.val() || {};
+                refreshShopDropdowns();
+                updateInventoryUI();
+            });
+        } else {
+            // No Authorized User / Logged Out
+            loginScreen.style.display = 'block';
+            mainApp.style.display = 'none';
+            
+            // Cut database event hooks to secure data memory
+            db.ref('aftersalesInventory').off();
+            inventory = {};
+            cart = [];
+            totalCost = 0;
+            renderCartUI();
+        }
     });
 
-    // Control Form Bindings
+    // Session Execution Triggers
+    document.getElementById('loginBtn').addEventListener('click', () => {
+        const email = document.getElementById('loginEmail').value.trim();
+        const pass = document.getElementById('loginPassword').value;
+        
+        if (!email || !pass) {
+            loginError.style.display = 'block';
+            loginError.innerText = "Please complete all mandatory credential inputs.";
+            return;
+        }
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .catch((error) => {
+                loginError.style.display = 'block';
+                loginError.innerText = error.message;
+            });
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        auth.signOut().then(() => {
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        });
+    });
+
+    // Standard Form Bindings
     document.getElementById('addNewPartBtn').addEventListener('click', addNewComponent);
     document.getElementById('brand').addEventListener('change', updateAvailableParts);
     document.getElementById('model').addEventListener('change', updateAvailableParts);
