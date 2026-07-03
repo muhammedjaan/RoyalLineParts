@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parts Management System</title>
+    <title>OEM Parts Management System</title>
     <style>
         :root {
             --primary: #007bff;
@@ -25,126 +25,68 @@
             color: #333;
         }
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1100px; margin: 0 auto; }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 20px;
         }
 
         h1 { margin: 0; font-size: 24px; color: var(--dark); }
 
         .tabs { display: flex; gap: 10px; }
         .tab-btn {
-            padding: 10px 20px;
-            border: 1px solid var(--border);
-            background: white;
-            cursor: pointer;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.2s ease-in-out;
+            padding: 10px 20px; border: 1px solid var(--border); background: white;
+            cursor: pointer; border-radius: 6px; font-weight: 600; transition: all 0.2s;
         }
         .tab-btn:hover { background-color: var(--light); }
-        .tab-btn.active {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
+        .tab-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
 
         .tab-content { display: none; }
         .tab-content.active { display: grid; }
         #shop { grid-template-columns: 2fr 1fr; gap: 20px; }
 
         .card {
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
+            background: white; padding: 24px; border-radius: 8px;
+            box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px;
         }
         .card h2 { 
-            margin-top: 0; 
-            font-size: 18px; 
-            margin-bottom: 20px; 
-            border-bottom: 1px solid var(--border); 
-            padding-bottom: 10px;
-            color: var(--dark);
+            margin-top: 0; font-size: 18px; margin-bottom: 20px; 
+            border-bottom: 1px solid var(--border); padding-bottom: 10px;
         }
 
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
         select, input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 15px;
-            background-color: #fff;
-            transition: border-color 0.15s ease;
-        }
-        select:focus, input:focus {
-            outline: none;
-            border-color: var(--primary);
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+            border-radius: 6px; box-sizing: border-box; font-size: 15px;
         }
 
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+
         .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-            font-size: 15px;
-            transition: background-color 0.15s ease;
+            background-color: var(--primary); color: white; border: none;
+            padding: 12px 20px; border-radius: 6px; cursor: pointer;
+            font-weight: bold; width: 100%; font-size: 15px;
         }
         .btn:hover { background-color: var(--primary-hover); }
         .btn-success { background-color: var(--success); }
-        .btn-success:hover { background-color: #218838; }
+        .btn-dark { background-color: var(--dark); }
 
-        /* Dynamic Item Layouts */
         .row-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px;
-            border-bottom: 1px solid var(--border);
-            background: var(--light);
-            margin-bottom: 10px;
-            border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px; border-bottom: 1px solid var(--border);
+            background: var(--light); margin-bottom: 10px; border-radius: 6px;
         }
 
-        .item-details { flex: 1; padding-right: 15px; }
-        .item-meta { font-size: 13px; margin-top: 6px; color: #666; }
-        .item-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .control-group { display: flex; align-items: center; gap: 4px; }
-
-        .stock-input { width: 90px; padding: 6px 8px; font-size: 14px; }
-        .action-btn {
-            padding: 6px 12px;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-        }
-        
+        .action-btn { padding: 6px 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px;}
         .btn-price { background-color: #17a2b8; }
         .btn-stock { background-color: var(--dark); }
-        .btn-remove { color: var(--danger); cursor: pointer; background: none; border: none; font-weight: bold; font-size: 16px; margin-left: 10px; }
-
+        .btn-remove { color: var(--danger); background: none; border: none; font-weight: bold; font-size: 16px; cursor: pointer;}
+        
+        .stock-input { width: 90px; padding: 6px 8px; font-size: 14px; display: inline-block;}
         #cartItems { max-height: 320px; overflow-y: auto; margin-bottom: 15px; }
-        .total-box { font-size: 19px; font-weight: 700; text-align: right; margin-bottom: 15px; color: var(--dark); }
+        .total-box { font-size: 19px; font-weight: 700; text-align: right; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -161,32 +103,28 @@
     <div id="shop" class="tab-content active">
         <div class="card">
             <h2>Select Vehicle & Components</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div class="input-grid">
                 <div class="form-group">
-                    <label for="brand">Brand</label>
-                    <select id="brand">
-                        <option value="Cadillac">Cadillac</option>
-                        <option value="Chevrolet">Chevrolet</option>
-                        <option value="GMC">GMC</option>
-                    </select>
+                    <label>Brand</label>
+                    <select id="brand"><option value="">-- Empty --</option></select>
                 </div>
                 <div class="form-group">
-                    <label for="model">Model</label>
-                    <select id="model"></select>
+                    <label>Model</label>
+                    <select id="model"><option value="">-- Empty --</option></select>
                 </div>
                 <div class="form-group">
-                    <label for="year">Production Year</label>
-                    <select id="year">
-                        <option value="2026">2026</option>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
-                    </select>
+                    <label>Production Year</label>
+                    <select id="year"><option value="">-- Empty --</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Condition Classification</label>
+                    <select id="condition"><option value="">-- Empty --</option></select>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="part">Available Matching Parts</label>
-                <select id="part"></select>
+                <label>Available Matching Parts</label>
+                <select id="part"><option value="">Select vehicle details above</option></select>
             </div>
 
             <button id="addToCartBtn" class="btn">Add Component to Order</button>
@@ -201,10 +139,31 @@
     </div>
 
     <div id="inventory" class="tab-content">
-        <div class="card" style="width: 100%;">
+        
+        <div class="card">
+            <h2>Register New Master Component</h2>
+            <div class="input-grid">
+                <input type="text" id="newBrand" placeholder="Brand (e.g., Cadillac)">
+                <input type="text" id="newModel" placeholder="Model (e.g., CT5)">
+                <input type="number" id="newYear" placeholder="Year (e.g., 2026)">
+                <select id="newCondition">
+                    <option value="OEM Factory New">OEM Factory New</option>
+                    <option value="OEM Certified Used">OEM Certified Used</option>
+                    <option value="Aftermarket">Aftermarket</option>
+                </select>
+            </div>
+            <div class="input-grid">
+                <input type="text" id="newPartName" placeholder="Component Name (e.g., Brake Pads)">
+                <input type="number" id="newPrice" placeholder="Price (AED)">
+                <input type="number" id="newStock" placeholder="Initial Stock Quantity">
+                <button id="addNewPartBtn" class="btn btn-dark">Add to Database Registry</button>
+            </div>
+        </div>
+
+        <div class="card">
             <h2>Master Inventory Registry Matrix</h2>
             <div class="form-group">
-                <input type="text" id="inventorySearch" placeholder="Search by brand, component name, condition status...">
+                <input type="text" id="inventorySearch" placeholder="Search registry...">
             </div>
             <div id="inventoryList"></div>
         </div>
