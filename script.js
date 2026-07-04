@@ -21,7 +21,10 @@ const db = firebase.database();
 let inventory = {};
 let cart = [];
 let totalCost = 0;
-let userDatabaseRef = null; // Dynamically holds the path to the logged-in user's data
+let transactionHistory = []; // NEW: Array to hold past orders
+
+let userDatabaseRef = null; 
+let historyDatabaseRef = null; // NEW: Ref for transaction history
 
 // 3. Database Utility Handlers
 function parseDbKey(dbKey) {
@@ -50,18 +53,17 @@ function switchTab(tabId) {
     document.getElementById(`btn-${tabId}`).classList.add('active');
     refreshShopDropdowns();
     updateInventoryUI();
+    renderHistoryUI(); // Refresh history when switching tabs
 }
 
 // 5. Registration: Add Components
 function addNewComponent() {
-    // ENFORCED UPPERCASE ON TEXT FIELDS
     const brand = document.getElementById('newBrand').value.trim().toUpperCase();
     const model = document.getElementById('newModel').value.trim().toUpperCase();
     const year = document.getElementById('newYear').value.trim();
     const condition = document.getElementById('newCondition').value.toUpperCase();
     const partName = document.getElementById('newPartName').value.trim().toUpperCase();
     
-    // NEW: Part Number and Internal Cost (Safeguarded in case HTML isn't updated yet)
     const partNumber = document.getElementById('newPartNumber') ? document.getElementById('newPartNumber').value.trim().toUpperCase() : "N/A";
     const cost = document.getElementById('newCost') ? parseInt(document.getElementById('newCost').value, 10) : 0; 
     
@@ -79,7 +81,6 @@ function addNewComponent() {
         return alert("This exact component configuration already exists in the cloud registry!");
     }
 
-    // NEW: Saving partNumber and hidden cost to the database object
     inventory[newDbKey] = { price: price, cost: cost, stock: stock, partNumber: partNumber };
     pushStateToCloud();
 
@@ -110,7 +111,6 @@ function refreshShopDropdowns() {
     updateAvailableParts();
 }
 
-// 7. Dynamic Select Helpers
 function populateSelectElement(elementId, dataSet) {
     const select = document.getElementById(elementId);
     const currentValue = select.value; 
@@ -145,7 +145,6 @@ function updateAvailableParts() {
             option.value = dbKey; 
             option.setAttribute('data-price', data.price);
             
-            // Appends Part Number to the dropdown view if it exists
             const pnDisplay = data.partNumber && data.partNumber !== "N/A" ? ` [PN: ${data.partNumber}]` : "";
             
             if (data.stock > 0) {
@@ -186,6 +185,23 @@ function addToCart() {
     renderCartUI();
 }
 
+// NEW: Add Custom Charge Function
+function addCustomCharge() {
+    const name = document.getElementById('customChargeName').value.trim();
+    const amount = parseInt(document.getElementById('customChargeAmount').value, 10);
+    
+    if (!name || isNaN(amount) || amount <= 0) {
+        return alert("Please enter a valid description and amount for the charge.");
+    }
+
+    cart.push({ dbKey: null, description: `[FEE] ${name}`, price: amount });
+    totalCost += amount;
+    renderCartUI();
+
+    document.getElementById('customChargeName').value = '';
+    document.getElementById('customChargeAmount').value = '';
+}
+
 function renderCartUI() {
     const container = document.getElementById('cartItems');
     container.innerHTML = '';
@@ -206,8 +222,26 @@ function removeFromCart(index) {
 
 function checkoutOrder() {
     if (cart.length === 0) return alert("The order sheet is empty.");
-    cart.forEach(item => { if (inventory[item.dbKey].stock > 0) inventory[item.dbKey].stock -= 1; });
+    
+    // Deduct Stock (Ignores custom charges which have dbKey = null)
+    cart.forEach(item => { 
+        if (item.dbKey && inventory[item.dbKey] && inventory[item.dbKey].stock > 0) {
+            inventory[item.dbKey].stock -= 1; 
+        }
+    });
     pushStateToCloud();
+
+    // NEW: Save to Transaction History
+    const timestamp = new Date().toLocaleString();
+    const newTransaction = {
+        date: timestamp,
+        items: cart.map(c => `${c.description} - AED ${c.price}`),
+        total: totalCost
+    };
+    
+    transactionHistory.unshift(newTransaction); // Add to top of history
+    if (historyDatabaseRef) historyDatabaseRef.set(transactionHistory);
+    
     alert(`Transaction Invoiced! Total: AED ${totalCost}`);
     cart = []; totalCost = 0;
     renderCartUI();
@@ -225,18 +259,18 @@ function updateInventoryUI() {
         const matchString = `${item.brand} ${item.model} ${item.year} ${item.condition} ${item.partName}`.toLowerCase();
         if (!matchString.includes(filter)) continue;
         
-        // Ensure Part Number shows up in the management matrix
         const pnDisplay = data.partNumber && data.partNumber !== "N/A" ? ` [PN: ${data.partNumber}]` : "";
         
         const div = document.createElement('div');
         div.className = 'row-item';
-        // Note: Internal Cost is purposefully excluded from the UI output below
+        // NEW: Internal Cost display added inside this HTML string
         div.innerHTML = `
             <div style="flex: 1;">
                 <strong>${item.brand} ${item.model} (${item.year}) - ${item.partName}${pnDisplay}</strong>
                 <div style="font-size: 13px; margin-top: 6px; color: #666;">
                     Condition: <span style="font-weight:bold; color:var(--dark);">${item.condition}</span> | 
-                    Selling Price: <span style="font-weight:bold; color:var(--primary);">AED ${data.price}</span> | 
+                    Cost: <span style="font-weight:bold; color:var(--danger);">AED ${data.cost || 0}</span> | 
+                    Price: <span style="font-weight:bold; color:var(--primary);">AED ${data.price}</span> | 
                     Stock: <strong>${data.stock}</strong>
                 </div>
             </div>
@@ -258,6 +292,42 @@ function updateInventoryUI() {
     }
 }
 
+// NEW: History UI Engine
+function renderHistoryUI() {
+    const container = document.getElementById('historyList');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (transactionHistory.length === 0) {
+        container.innerHTML = '<p style="color: #666;">No past transactions found.</p>';
+        return;
+    }
+
+    transactionHistory.forEach(tx => {
+        const div = document.createElement('div');
+        div.className = 'row-item';
+        div.style.display = 'block'; // Overrides the row flex
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;">
+                <strong>${tx.date}</strong>
+                <strong style="color: var(--primary);">Total: AED ${tx.total}</strong>
+            </div>
+            <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #444;">
+                ${tx.items.map(i => `<li>${i}</li>`).join('')}
+            </ul>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function clearHistory() {
+    if (confirm("WARNING: Are you sure you want to permanently delete all transaction history?")) {
+        transactionHistory = [];
+        if (historyDatabaseRef) historyDatabaseRef.set(transactionHistory);
+        renderHistoryUI();
+    }
+}
+
 function updatePrice(dbKey) {
     const newPrice = parseInt(document.getElementById(`price-${dbKey}`).value, 10);
     if (isNaN(newPrice) || newPrice < 0) return alert("Invalid price.");
@@ -272,11 +342,10 @@ function addStock(dbKey) {
     pushStateToCloud();
 }
 
-// NEW: Delete Part Function
 function deletePart(dbKey) {
     if (confirm("WARNING: Are you sure you want to permanently delete this part from the registry?")) {
-        delete inventory[dbKey]; // Removes item from local object
-        pushStateToCloud();      // Pushes deletion to Firebase
+        delete inventory[dbKey]; 
+        pushStateToCloud();      
     }
 }
 
@@ -292,20 +361,31 @@ document.addEventListener('DOMContentLoaded', () => {
             loginScreen.style.display = 'none';
             mainApp.style.display = 'block';
 
-            // SECURE ROUTING: Mount the database branch unique to this account's UID
+            // SECURE ROUTING: Mount the databases unique to this account's UID
             userDatabaseRef = db.ref('tenant_databases/' + user.uid);
+            historyDatabaseRef = db.ref('tenant_history/' + user.uid); // NEW
 
             userDatabaseRef.on('value', (snapshot) => {
                 inventory = snapshot.val() || {};
                 refreshShopDropdowns();
                 updateInventoryUI();
             });
+
+            // NEW: Fetch Transaction History
+            historyDatabaseRef.on('value', (snapshot) => {
+                transactionHistory = snapshot.val() || [];
+                renderHistoryUI();
+            });
+
         } else {
             loginScreen.style.display = 'block';
             mainApp.style.display = 'none';
             if (userDatabaseRef) userDatabaseRef.off(); 
+            if (historyDatabaseRef) historyDatabaseRef.off(); 
             userDatabaseRef = null;
+            historyDatabaseRef = null;
             inventory = {};
+            transactionHistory = [];
         }
     });
 
@@ -337,6 +417,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('addToCartBtn').addEventListener('click', addToCart);
     document.getElementById('checkoutBtn').addEventListener('click', checkoutOrder);
     document.getElementById('inventorySearch').addEventListener('input', updateInventoryUI);
+    
+    // NEW BINDINGS
+    document.getElementById('addCustomChargeBtn').addEventListener('click', addCustomCharge);
+    document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => switchTab(e.target.dataset.tab));
@@ -352,6 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetKey = e.target.dataset.key;
         if (action === 'price') updatePrice(targetKey);
         if (action === 'stock') addStock(targetKey);
-        if (action === 'delete') deletePart(targetKey); // NEW BINDING
+        if (action === 'delete') deletePart(targetKey); 
     });
 });
