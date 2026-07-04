@@ -168,9 +168,10 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" id="btn-tab-register" data-tab="tab-register">1. Component Registration</button>
-            <button class="tab-btn" id="btn-tab-shop" data-tab="tab-shop">2. Storefront & Checkout</button>
-            <button class="tab-btn" id="btn-tab-manage" data-tab="tab-manage">3. Management Matrix</button>
+            <button class="tab-btn active" id="btn-tab-register" data-tab="tab-register">1. Registration</button>
+            <button class="tab-btn" id="btn-tab-shop" data-tab="tab-shop">2. Storefront</button>
+            <button class="tab-btn" id="btn-tab-manage" data-tab="tab-manage">3. Matrix</button>
+            <button class="tab-btn" id="btn-tab-history" data-tab="tab-history">4. History</button>
         </div>
 
         <div id="tab-register" class="tab-content active">
@@ -186,8 +187,8 @@
                 </select>
                 <input type="text" id="newPartName" placeholder="Component Name (e.g., Alternator)">
                 <input type="text" id="newPartNumber" placeholder="Part Number (Optional)">
-                <input type="number" id="newCost" placeholder="Internal Cost in AED (Hidden)">
-                <input type="number" id="newPrice" placeholder="Selling Price in AED (Public)">
+                <input type="number" id="newCost" placeholder="Internal Cost in AED">
+                <input type="number" id="newPrice" placeholder="Selling Price in AED">
                 <input type="number" id="newStock" placeholder="Initial Stock Quantity">
             </div>
             <button id="addNewPartBtn" style="width: 100%; font-size: 16px; padding: 15px;">Deploy Component to Cloud</button>
@@ -204,14 +205,24 @@
             
             <div style="margin-top: 15px;">
                 <label style="font-weight: bold; margin-bottom: 5px; display: block;">Available Parts in Stock:</label>
-                <select id="part" style="margin-bottom: 15px; padding: 12px;"></select>
-                <button id="addToCartBtn">Add to Order Sheet</button>
+                <div style="display: flex; gap: 10px;">
+                    <select id="part" style="flex: 3; padding: 12px;"></select>
+                    <button id="addToCartBtn" style="flex: 1;">Add to Order Sheet</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #e0e7ff; border-radius: 8px; border: 1px solid #c7d2fe;">
+                <label style="font-weight: bold; margin-bottom: 5px; display: block; color: var(--primary-hover);">Add Custom Charge (Labor, Shipping, etc.):</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="customChargeName" placeholder="Description (e.g., Labor Fee)" style="flex: 2;">
+                    <input type="number" id="customChargeAmount" placeholder="Amount (AED)" style="flex: 1;">
+                    <button id="addCustomChargeBtn" style="flex: 1; background: var(--dark);">Add Charge</button>
+                </div>
             </div>
 
             <div class="cart-panel">
                 <h3 style="margin-top: 0;">Active Order Sheet</h3>
-                <div id="cartItems">
-                    </div>
+                <div id="cartItems"></div>
                 <div style="margin-top: 20px; font-size: 18px; font-weight: bold; text-align: right;">
                     Total Invoice: AED <span id="cartTotal">0</span>
                 </div>
@@ -222,8 +233,15 @@
         <div id="tab-manage" class="tab-content">
             <h3>Live Inventory Matrix</h3>
             <input type="text" id="inventorySearch" placeholder="Search by brand, model, or part name..." style="margin-bottom: 20px; padding: 12px;">
-            <div id="inventoryList">
-                </div>
+            <div id="inventoryList"></div>
+        </div>
+
+        <div id="tab-history" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Transaction Ledger</h3>
+                <button id="clearHistoryBtn" class="danger">Clear History</button>
+            </div>
+            <div id="historyList"></div>
         </div>
 
     </div>
