@@ -230,22 +230,30 @@ function checkoutOrder() {
     });
     pushStateToCloud();
 
-    // UPDATED: Push transaction securely to Firebase to prevent array corruption
     const timestamp = new Date().toLocaleString();
     const newTransaction = {
         date: timestamp,
-        orderTime: Date.now(), // Added so we can sort properly after reloading
+        orderTime: Date.now(), 
         items: cart.map(c => `${c.description} - AED ${c.price}`),
         total: totalCost
     };
     
     if (historyDatabaseRef) {
-        historyDatabaseRef.push(newTransaction); // .push() forces a permanent cloud save
+        // Catch silent errors if Firebase blocks the save
+        historyDatabaseRef.push(newTransaction)
+            .then(() => {
+                alert(`Transaction Invoiced and Saved to Cloud! Total: AED ${totalCost}`);
+                cart = []; 
+                totalCost = 0;
+                renderCartUI();
+            })
+            .catch((error) => {
+                console.error("Firebase Error:", error);
+                alert("CLOUD SAVE FAILED: " + error.message + "\n\nCheck your Firebase Database Rules.");
+            });
+    } else {
+        alert("Database connection missing. Try logging out and back in.");
     }
-    
-    alert(`Transaction Invoiced! Total: AED ${totalCost}`);
-    cart = []; totalCost = 0;
-    renderCartUI();
 }
 
 // 9. Management Matrix Engine
@@ -320,7 +328,6 @@ function renderHistoryUI() {
     });
 }
 
-// UPDATED: Completely removes history from the cloud database node
 function clearHistory() {
     if (confirm("WARNING: Are you sure you want to permanently delete all transaction history?")) {
         if (historyDatabaseRef) {
@@ -372,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateInventoryUI();
             });
 
-            // UPDATED: Fetches cloud data and forces it into a strict array for sorting and rendering
+            // Fetches cloud data and forces it into a strict array for sorting and rendering
             historyDatabaseRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 transactionHistory = [];
