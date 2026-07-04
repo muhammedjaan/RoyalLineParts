@@ -1,5 +1,6 @@
 /**
- * OEM Parts Management System - Multi-Tenant Pro Edition
+ * OEM Parts Management System - Multi-Tenant Enterprise Edition
+ * Features: Atomic Transactions, Offline Cart Recovery, Searchable DB Nodes
  */
 
 // 1. Initialize Cloud Database Connection
@@ -19,30 +20,17 @@ const db = firebase.database();
 
 // 2. Local App Memory State
 let inventory = {};
-let cart = [];
-let totalCost = 0;
 let transactionHistory = []; 
-
 let userDatabaseRef = null; 
 let historyDatabaseRef = null; 
 
-// 3. Database Utility Handlers
-function parseDbKey(dbKey) {
-    const segments = dbKey.split('|');
-    return {
-        brand: segments[0], model: segments[1], year: segments[2],
-        condition: segments[3], partName: segments[4]
-    };
-}
+// Offline Cart Recovery
+let cart = JSON.parse(localStorage.getItem('oem_offline_cart')) || [];
+let totalCost = cart.reduce((sum, item) => sum + item.price, 0);
 
-function safeFirebaseKey(keyString) {
-    return keyString.replace(/[\.\#\$\[\]]/g, '-');
-}
-
-function pushStateToCloud() {
-    if (userDatabaseRef) {
-        userDatabaseRef.set(inventory);
-    }
+function saveCartState() {
+    localStorage.setItem('oem_offline_cart', JSON.stringify(cart));
+    renderCartUI();
 }
 
 // 4. Interface View Controller
@@ -56,7 +44,7 @@ function switchTab(tabId) {
     renderHistoryUI(); 
 }
 
-// 5. Registration: Add Components
+// 5. Registration: Add Components (Restructured Database Nodes)
 function addNewComponent() {
     const brand = document.getElementById('newBrand').value.trim().toUpperCase();
     const model = document.getElementById('newModel').value.trim().toUpperCase();
@@ -74,36 +62,38 @@ function addNewComponent() {
         return alert("Action Denied: All configuration fields must be filled out correctly.");
     }
 
-    const rawKey = `${brand}|${model}|${year}|${condition}|${partName}`;
-    const newDbKey = safeFirebaseKey(rawKey);
+    // Check for exact duplicates in local memory before pushing
+    const isDuplicate = Object.values(inventory).some(item => 
+        item.brand === brand && item.model === model && item.year === year && 
+        item.condition === condition && item.partName === partName
+    );
 
-    if (inventory[newDbKey]) {
-        return alert("This exact component configuration already exists in the cloud registry!");
-    }
+    if (isDuplicate) return alert("This exact component configuration already exists in the cloud registry!");
 
-    inventory[newDbKey] = { price: price, cost: cost, stock: stock, partNumber: partNumber };
-    pushStateToCloud();
-
-    document.getElementById('newBrand').value = '';
-    document.getElementById('newModel').value = '';
-    document.getElementById('newYear').value = '';
-    document.getElementById('newPartName').value = '';
-    document.getElementById('newPrice').value = '';
-    document.getElementById('newStock').value = '';
-    if(document.getElementById('newPartNumber')) document.getElementById('newPartNumber').value = '';
-    if(document.getElementById('newCost')) document.getElementById('newCost').value = '';
-    
-    alert(`Success: ${brand} ${partName} added to live cloud engine!`);
+    // NEW: Push structured data object instead of a concatenated key
+    const newPartData = { brand, model, year, condition, partName, partNumber, cost, price, stock };
+    userDatabaseRef.push(newPartData).then(() => {
+        document.getElementById('newBrand').value = '';
+        document.getElementById('newModel').value = '';
+        document.getElementById('newYear').value = '';
+        document.getElementById('newPartName').value = '';
+        document.getElementById('newPrice').value = '';
+        document.getElementById('newStock').value = '';
+        if(document.getElementById('newPartNumber')) document.getElementById('newPartNumber').value = '';
+        if(document.getElementById('newCost')) document.getElementById('newCost').value = '';
+        
+        alert(`Success: ${brand} ${partName} added to live cloud engine!`);
+    }).catch(err => alert("Upload Failed: " + err.message));
 }
 
 // 6. Dynamic Select Builders
 function refreshShopDropdowns() {
     const brands = new Set(), models = new Set(), years = new Set(), conditions = new Set();
-    for (const key of Object.keys(inventory)) {
-        const item = parseDbKey(key);
+    Object.values(inventory).forEach(item => {
         brands.add(item.brand); models.add(item.model);
         years.add(item.year); conditions.add(item.condition);
-    }
+    });
+    
     populateSelectElement('brand', brands);
     populateSelectElement('model', models);
     populateSelectElement('year', years);
@@ -137,18 +127,17 @@ function updateAvailableParts() {
     partSelect.innerHTML = ''; 
     let partsFound = false;
     
-    for (const [dbKey, data] of Object.entries(inventory)) {
-        const item = parseDbKey(dbKey);
+    for (const [dbKey, item] of Object.entries(inventory)) {
         if (item.brand === currentBrand && item.model === currentModel && item.year === currentYear && item.condition === currentCondition) {
             partsFound = true;
             const option = document.createElement('option');
-            option.value = dbKey; 
-            option.setAttribute('data-price', data.price);
+            option.value = dbKey; // The value is now the secure Firebase Push ID
+            option.setAttribute('data-price', item.price);
             
-            const pnDisplay = data.partNumber && data.partNumber !== "N/A" ? ` [PN: ${data.partNumber}]` : "";
+            const pnDisplay = item.partNumber && item.partNumber !== "N/A" ? ` [PN: ${item.partNumber}]` : "";
             
-            if (data.stock > 0) {
-                option.innerText = `${item.partName}${pnDisplay} (AED ${data.price}) - Stock: ${data.stock}`;
+            if (item.stock > 0) {
+                option.innerText = `${item.partName}${pnDisplay} (AED ${item.price}) - Stock: ${item.stock}`;
             } else {
                 option.innerText = `${item.partName}${pnDisplay} (OUT OF STOCK)`;
                 option.disabled = true;
@@ -172,17 +161,17 @@ function addToCart() {
     }
 
     const dbItemKey = partSelect.value; 
-    const item = parseDbKey(dbItemKey);
+    const item = inventory[dbItemKey];
     const price = parseInt(partSelect.options[partSelect.selectedIndex].getAttribute('data-price'), 10);
 
     const countInCart = cart.filter(cItem => cItem.dbKey === dbItemKey).length;
-    if (countInCart >= inventory[dbItemKey].stock) {
+    if (countInCart >= item.stock) {
         return alert("Cannot append more items than physically remaining in workshop stock.");
     }
 
     cart.push({ dbKey: dbItemKey, description: `(${item.condition}) ${item.year} ${item.brand} ${item.model} ${item.partName}`, price: price });
     totalCost += price;
-    renderCartUI();
+    saveCartState();
 }
 
 function addCustomCharge() {
@@ -195,7 +184,7 @@ function addCustomCharge() {
 
     cart.push({ dbKey: null, description: `[FEE] ${name}`, price: amount });
     totalCost += amount;
-    renderCartUI();
+    saveCartState();
 
     document.getElementById('customChargeName').value = '';
     document.getElementById('customChargeAmount').value = '';
@@ -203,6 +192,7 @@ function addCustomCharge() {
 
 function renderCartUI() {
     const container = document.getElementById('cartItems');
+    if(!container) return;
     container.innerHTML = '';
     cart.forEach((item, index) => {
         const div = document.createElement('div');
@@ -216,44 +206,55 @@ function renderCartUI() {
 function removeFromCart(index) {
     totalCost -= cart[index].price;
     cart.splice(index, 1);
-    renderCartUI();
+    saveCartState();
 }
 
+// THE FIX: Atomic Checkout Process
 function checkoutOrder() {
     if (cart.length === 0) return alert("The order sheet is empty.");
     
-    // Deduct Stock
-    cart.forEach(item => { 
-        if (item.dbKey && inventory[item.dbKey] && inventory[item.dbKey].stock > 0) {
-            inventory[item.dbKey].stock -= 1; 
+    // 1. Process secure atomic stock deductions
+    const deductionPromises = cart.map(cartItem => {
+        if (!cartItem.dbKey) return Promise.resolve({ committed: true }); // Custom charges have no stock
+        
+        return userDatabaseRef.child(cartItem.dbKey).child('stock').transaction(currentStock => {
+            if (currentStock === null || currentStock <= 0) {
+                return undefined; // Abort transaction if someone else bought the last one!
+            }
+            return currentStock - 1;
+        });
+    });
+
+    // 2. Wait for all deductions to clear the database securely
+    Promise.all(deductionPromises).then(results => {
+        // Check if any transactions failed due to race conditions
+        const checkoutFailed = results.some(res => res.committed === false);
+        if (checkoutFailed) {
+            alert("RACE CONDITION AVERTED: An item in your cart was just purchased by another user and is now out of stock. Please review your cart.");
+            return Promise.reject("Stock unavailable");
+        }
+
+        // 3. If deductions passed, push history securely
+        const timestamp = new Date().toLocaleString();
+        const newTransaction = {
+            date: timestamp,
+            orderTime: Date.now(), 
+            items: cart.map(c => `${c.description} - AED ${c.price}`),
+            total: totalCost
+        };
+        return historyDatabaseRef.push(newTransaction);
+        
+    }).then(() => {
+        alert(`Transaction Invoiced and Saved to Cloud! Total: AED ${totalCost}`);
+        cart = []; 
+        totalCost = 0;
+        saveCartState(); // Clears offline cache
+    }).catch((error) => {
+        if(error !== "Stock unavailable") {
+            console.error("Firebase Error:", error);
+            alert("CLOUD SAVE FAILED. Check your Firebase Rules.");
         }
     });
-    pushStateToCloud();
-
-    const timestamp = new Date().toLocaleString();
-    const newTransaction = {
-        date: timestamp,
-        orderTime: Date.now(), 
-        items: cart.map(c => `${c.description} - AED ${c.price}`),
-        total: totalCost
-    };
-    
-    if (historyDatabaseRef) {
-        // Catch silent errors if Firebase blocks the save
-        historyDatabaseRef.push(newTransaction)
-            .then(() => {
-                alert(`Transaction Invoiced and Saved to Cloud! Total: AED ${totalCost}`);
-                cart = []; 
-                totalCost = 0;
-                renderCartUI();
-            })
-            .catch((error) => {
-                console.error("Firebase Error:", error);
-                alert("CLOUD SAVE FAILED: " + error.message + "\n\nCheck your Firebase Database Rules.");
-            });
-    } else {
-        alert("Database connection missing. Try logging out and back in.");
-    }
 }
 
 // 9. Management Matrix Engine
@@ -263,12 +264,11 @@ function updateInventoryUI() {
     const filter = document.getElementById('inventorySearch').value.toLowerCase();
     container.innerHTML = '';
 
-    for (const [dbKey, data] of Object.entries(inventory)) {
-        const item = parseDbKey(dbKey);
+    for (const [dbKey, item] of Object.entries(inventory)) {
         const matchString = `${item.brand} ${item.model} ${item.year} ${item.condition} ${item.partName}`.toLowerCase();
         if (!matchString.includes(filter)) continue;
         
-        const pnDisplay = data.partNumber && data.partNumber !== "N/A" ? ` [PN: ${data.partNumber}]` : "";
+        const pnDisplay = item.partNumber && item.partNumber !== "N/A" ? ` [PN: ${item.partNumber}]` : "";
         
         const div = document.createElement('div');
         div.className = 'row-item';
@@ -277,9 +277,9 @@ function updateInventoryUI() {
                 <strong>${item.brand} ${item.model} (${item.year}) - ${item.partName}${pnDisplay}</strong>
                 <div style="font-size: 13px; margin-top: 6px; color: #666;">
                     Condition: <span style="font-weight:bold; color:var(--dark);">${item.condition}</span> | 
-                    Cost: <span style="font-weight:bold; color:var(--danger);">AED ${data.cost || 0}</span> | 
-                    Price: <span style="font-weight:bold; color:var(--primary);">AED ${data.price}</span> | 
-                    Stock: <strong>${data.stock}</strong>
+                    Cost: <span style="font-weight:bold; color:var(--danger);">AED ${item.cost || 0}</span> | 
+                    Price: <span style="font-weight:bold; color:var(--primary);">AED ${item.price}</span> | 
+                    Stock: <strong>${item.stock}</strong>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -338,24 +338,23 @@ function clearHistory() {
     }
 }
 
+// Server-side targeted updates
 function updatePrice(dbKey) {
     const newPrice = parseInt(document.getElementById(`price-${dbKey}`).value, 10);
     if (isNaN(newPrice) || newPrice < 0) return alert("Invalid price.");
-    inventory[dbKey].price = newPrice;
-    pushStateToCloud();
+    userDatabaseRef.child(dbKey).update({ price: newPrice }); // Targeted update
 }
 
 function addStock(dbKey) {
     const delta = parseInt(document.getElementById(`stock-${dbKey}`).value, 10);
     if (isNaN(delta) || delta === 0) return alert("Invalid quantity.");
-    inventory[dbKey].stock += delta;
-    pushStateToCloud();
+    // Atomic increment for safe stock addition
+    userDatabaseRef.child(dbKey).child('stock').transaction(current => (current || 0) + delta);
 }
 
 function deletePart(dbKey) {
     if (confirm("WARNING: Are you sure you want to permanently delete this part from the registry?")) {
-        delete inventory[dbKey]; 
-        pushStateToCloud();      
+        userDatabaseRef.child(dbKey).remove(); // Targeted delete
     }
 }
 
@@ -364,6 +363,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginScreen = document.getElementById('loginScreen');
     const mainApp = document.getElementById('mainApp');
     const loginError = document.getElementById('loginError');
+
+    renderCartUI(); // Load offline cart on boot
 
     auth.onAuthStateChanged((user) => {
         if (user) {
@@ -379,7 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateInventoryUI();
             });
 
-            // Fetches cloud data and forces it into a strict array for sorting and rendering
             historyDatabaseRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 transactionHistory = [];
@@ -387,7 +387,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     Object.keys(data).forEach(key => {
                         transactionHistory.push(data[key]);
                     });
-                    // Sort newest items to the top
                     transactionHistory.sort((a, b) => b.orderTime - a.orderTime);
                 }
                 renderHistoryUI();
